@@ -7,7 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		D28875EF247CF85900005301 /* main.c in Sources */ = {isa = PBXBuildFile; fileRef = D28875EE247CF85900005301 /* main.c */; };
+		D2D366C3247CFF6B0087813E /* pfcDisconnectedSwitch.c in Sources */ = {isa = PBXBuildFile; fileRef = D2D366C2247CFF6B0087813E /* pfcDisconnectedSwitch.c */; };
+		D2D366C6247D07E50087813E /* pfc1.c in Sources */ = {isa = PBXBuildFile; fileRef = D2D366C5247D07E50087813E /* pfc1.c */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -24,7 +25,10 @@
 
 /* Begin PBXFileReference section */
 		D28875EB247CF85900005301 /* sistemiOperativi */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = sistemiOperativi; sourceTree = BUILT_PRODUCTS_DIR; };
-		D28875EE247CF85900005301 /* main.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = main.c; sourceTree = "<group>"; };
+		D2D366C1247CFF6B0087813E /* pfcDisconnectedSwitch.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = pfcDisconnectedSwitch.h; sourceTree = "<group>"; };
+		D2D366C2247CFF6B0087813E /* pfcDisconnectedSwitch.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = pfcDisconnectedSwitch.c; sourceTree = "<group>"; };
+		D2D366C4247D07E50087813E /* pfc.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = pfc.h; sourceTree = "<group>"; };
+		D2D366C5247D07E50087813E /* pfc1.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = pfc1.c; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.simpleColoring; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -57,7 +61,10 @@
 		D28875ED247CF85900005301 /* sistemiOperativi */ = {
 			isa = PBXGroup;
 			children = (
-				D28875EE247CF85900005301 /* main.c */,
+				D2D366C1247CFF6B0087813E /* pfcDisconnectedSwitch.h */,
+				D2D366C2247CFF6B0087813E /* pfcDisconnectedSwitch.c */,
+				D2D366C4247D07E50087813E /* pfc.h */,
+				D2D366C5247D07E50087813E /* pfc1.c */,
 			);
 			path = sistemiOperativi;
 			sourceTree = "<group>";
@@ -119,7 +126,8 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				D28875EF247CF85900005301 /* main.c in Sources */,
+				D2D366C3247CFF6B0087813E /* pfcDisconnectedSwitch.c in Sources */,
+				D2D366C6247D07E50087813E /* pfc1.c in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
