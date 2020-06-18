@@ -1,13 +1,12 @@
 //
-//  pfc.c
+//  pfc3.c
 //  sistemiOperativi
 //
-//  Created by Alessandro Filino on 26/05/2020.
+//  Created by Alessandro Filino on 18/06/2020.
 //  Copyright © 2020 Alessandro Filino. All rights reserved.
 //
 
 #include "pfc.h"
-
 int main(int argc, const char * argv[]) {
     
     int fd;
@@ -38,6 +37,9 @@ int main(int argc, const char * argv[]) {
         exit (EXIT_FAILURE);
     }
     
+    FILE *fpTransducers;
+    fpTransducers = fopen("pfcTransducers.txt", "w");
+    
     for(;;) {
         sleep(1);
         caratteriLetti = getline(&riga, &lunghezzaRiga, fp);
@@ -51,13 +53,10 @@ int main(int argc, const char * argv[]) {
         double distanza = calcoloDistanza(latitudine, longitudine, latitudine_prec, longitudine_prec);
         char velocita[5];
         snprintf(velocita, sizeof(velocita), "%f", (calcoloVelocita(distanza, tempo)));
-        do {
-            fd = open ("pfc1Pipe", O_WRONLY);
-            if (fd == -1){
-                sleep (1);
-            }
-        } while (fd == -1);
-            write (fd, velocita, sizeof(velocita));
+        
+        fflush(fpTransducers);
+        
+        fwrite(velocita, sizeof(int), 1, fpTransducers);
         
         latitudine_prec = latitudine;
         direzioneLatitudine = direzioneLatitudine_prec;
@@ -68,6 +67,7 @@ int main(int argc, const char * argv[]) {
     }
     
     close(fd);
+    fclose(fpTransducers);
 }
 
 void acquisisciCoordinate(char* riga, double* latitudine, char* direzioneLatitudine, double* longitudine, char* direzioneLongitudine, long* tempo, char* comandoControllo){
@@ -75,7 +75,7 @@ void acquisisciCoordinate(char* riga, double* latitudine, char* direzioneLatitud
     char* tok;
     
     tok = strtok(riga, ",");
-     
+    
     if(tok == NULL){
         fprintf(stderr, "Errore\n");
         exit (EXIT_FAILURE);
@@ -119,4 +119,5 @@ long conversioneTempo(char* tempo){
     
     return ore/3600 + minuti/60 + secondi;
 }
+
 

@@ -11,30 +11,79 @@
 int main(int argc, const char * argv[]) {
     
     int pfcProcess[3];
-    int pid = creaFiglio();
+    int generatoreFallimentiProcess;
     
-     if (pid == 0) {
-         pfcProcess[0] = getpid();
-       // execlp("/bin/ls", "ls", NULL);
+    int pidFiglio = fork();
+    
+    if (pidFiglio < 0) {
+        //errore
+    } else if (pidFiglio == 0) {
+        //processo figlio
+        pfcProcess[0] = getpid();
+        //execlp(...);
     }
-    else {
-        pid = creaFiglio();
-        wait (NULL);
-        printf ("Child Complete\n");
-        exit(0);
+    //processo padre
+    pidFiglio = fork();
+    if (pidFiglio < 0) {
+        //errore
+    } else if (pidFiglio == 0) {
+        //processo figlio
+        pfcProcess[1] = getpid();
+        // execlp(...);
     }
-
+    //processo padre
+    pidFiglio = fork();
+    if (pidFiglio < 0) {
+        //errore
+    } else if (pidFiglio == 0) {
+        //processo figlio
+        pfcProcess[2] = getpid();
+        // execlp(...);
+    }
+    //processo padre
+    int fd[2];
+    pipe(fd);
+    close(fd[READ]);
+    write(fd[WRITE], pfcProcess, sizeof(pfcProcess));
+    
+    pidFiglio = fork();
+    if (pidFiglio < 0) {
+        
+        //errore
+    } else if (pidFiglio == 0) {
+        //processo figlio
+        
+        generatoreFallimentiProcess = getpid();
+        // INVIARE FD;
+        execl("generatoreFallimenti.c", fd[0], fd[1], NULL);
+    }
+    
+   //processo padre
+   
+    
+    
+       //execlp(...);
+    
+    
     return 0;
 }
 
-int creaFiglio(){
+char** intToString(int pid){
+    char converted[65535];
+    sprintf(converted, "%d", pid);
     
+    return converted;
+}
+
+int creaFiglio(int* pfcProcess) {
     int pidFiglio = fork();
     if (pidFiglio < 0) { /* error occurred */
         fprintf(stderr, "Fork Failed\n");
         exit(-1);
+    } else if (pidFiglio == 0) {
+        *pfcProcess = getpid();
     }
-
+    
     return pidFiglio;
 }
 

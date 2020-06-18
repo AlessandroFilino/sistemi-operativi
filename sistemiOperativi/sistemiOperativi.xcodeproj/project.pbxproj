@@ -9,6 +9,9 @@
 /* Begin PBXBuildFile section */
 		D2D366C3247CFF6B0087813E /* pfcDisconnectedSwitch.c in Sources */ = {isa = PBXBuildFile; fileRef = D2D366C2247CFF6B0087813E /* pfcDisconnectedSwitch.c */; };
 		D2D366C6247D07E50087813E /* pfc1.c in Sources */ = {isa = PBXBuildFile; fileRef = D2D366C5247D07E50087813E /* pfc1.c */; };
+		D2FE8D75249B4BC8003A10FA /* pfc2.c in Sources */ = {isa = PBXBuildFile; fileRef = D2FE8D74249B4BC8003A10FA /* pfc2.c */; };
+		D2FE8D78249B5047003A10FA /* pfc3.c in Sources */ = {isa = PBXBuildFile; fileRef = D2FE8D77249B5047003A10FA /* pfc3.c */; };
+		D2FE8D7B249B5339003A10FA /* generatoreFallimenti.c in Sources */ = {isa = PBXBuildFile; fileRef = D2FE8D7A249B5339003A10FA /* generatoreFallimenti.c */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -29,6 +32,10 @@
 		D2D366C2247CFF6B0087813E /* pfcDisconnectedSwitch.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = pfcDisconnectedSwitch.c; sourceTree = "<group>"; };
 		D2D366C4247D07E50087813E /* pfc.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = pfc.h; sourceTree = "<group>"; };
 		D2D366C5247D07E50087813E /* pfc1.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = pfc1.c; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.simpleColoring; };
+		D2FE8D74249B4BC8003A10FA /* pfc2.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = pfc2.c; sourceTree = "<group>"; };
+		D2FE8D77249B5047003A10FA /* pfc3.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = pfc3.c; sourceTree = "<group>"; };
+		D2FE8D79249B5339003A10FA /* generatoreFallimenti.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = generatoreFallimenti.h; sourceTree = "<group>"; };
+		D2FE8D7A249B5339003A10FA /* generatoreFallimenti.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = generatoreFallimenti.c; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -65,6 +72,10 @@
 				D2D366C2247CFF6B0087813E /* pfcDisconnectedSwitch.c */,
 				D2D366C4247D07E50087813E /* pfc.h */,
 				D2D366C5247D07E50087813E /* pfc1.c */,
+				D2FE8D74249B4BC8003A10FA /* pfc2.c */,
+				D2FE8D77249B5047003A10FA /* pfc3.c */,
+				D2FE8D79249B5339003A10FA /* generatoreFallimenti.h */,
+				D2FE8D7A249B5339003A10FA /* generatoreFallimenti.c */,
 			);
 			path = sistemiOperativi;
 			sourceTree = "<group>";
@@ -126,8 +137,11 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				D2FE8D75249B4BC8003A10FA /* pfc2.c in Sources */,
+				D2FE8D7B249B5339003A10FA /* generatoreFallimenti.c in Sources */,
 				D2D366C3247CFF6B0087813E /* pfcDisconnectedSwitch.c in Sources */,
 				D2D366C6247D07E50087813E /* pfc1.c in Sources */,
+				D2FE8D78249B5047003A10FA /* pfc3.c in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

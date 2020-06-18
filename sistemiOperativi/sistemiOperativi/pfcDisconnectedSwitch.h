@@ -8,6 +8,18 @@
 
 #ifndef pfcDisconnectedSwitch_h
 #define pfcDisconnectedSwitch_h
-int creaFiglio(void);
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <fcntl.h>
+#include <string.h>
+
+#define READ 0
+#define WRITE 1
+
+int creaFiglio(int* pfcProcess);
+
+
 
 #endif /* pfcDisconnectedSwitch_h */
