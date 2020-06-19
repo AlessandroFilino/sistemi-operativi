@@ -9,6 +9,7 @@
 #include "generatoreFallimenti.h"
 
 int main(int argc, const char * argv[]) {
+    //TODO usare strtol invece che atoi
 
     srand(time(NULL));
 
