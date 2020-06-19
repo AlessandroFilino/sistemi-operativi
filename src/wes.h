@@ -6,5 +6,6 @@
 #define wes_h
 
 #include <stdlib.h>
+#include <stdio.h>
 
 #endif //wes_h

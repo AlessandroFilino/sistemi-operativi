@@ -3,13 +3,12 @@
 int main(int argc, const char * argv[]) {
 
     //pfc1
-    char buffer[50];
+    char velocita_pfc1[50];
     unlink("pfc1Pipe");
     mknod("pfc1Pipe", S_IFIFO, 0);
     chmod("pfc1Pipe", 0660);
-    fd = open("pfc1Pipe", O_RDONLY | O_NONBLOCK);
+    int fd = open("pfc1Pipe", O_RDONLY | O_NONBLOCK);
     FILE *speedPFC1Log = fopen("speedPFC1.log", "w");
-
 
     //pfc2
     int serverFd, clientFd, serverLen, result;
@@ -34,7 +33,7 @@ int main(int argc, const char * argv[]) {
     listen (serverFd, 1); /* Maximum pending connection length */
 
     FILE *speedPFC2Log = fopen("speedPFC2.log", "w");
-
+    int velocita_pfc2;
 
     //pfc3
     FILE *speedPFC3Log = fopen("speedPFC3.log", "w");
@@ -42,25 +41,25 @@ int main(int argc, const char * argv[]) {
     int velocita_pfc3;
 
     for(;;) {
-        sleepms(5);
+        usleep(5);
 
         //pfc1
-        readline(fd, buffer);
+        read(fd, velocita_pfc1, sizeof(int)); //legge la velocita
         fflush(speedPFC1Log);
-        fwrite(buffer, sizeof(int), 1, speedPFC1Log);
+        fwrite(velocita_pfc1, sizeof(int), 1, speedPFC1Log);
 
         //pfc2
         clientFd = accept (serverFd, clientSockAddrPtr, &clientLen);
         if (fork () == 0) { /* Create child to send receipe */
-            //read
+            //leggere la velocita
         }
         fflush(speedPFC2Log);
-        fwrite(velocita, sizeof(int), 1, speedPFC2Log);
+        fwrite(&velocita_pfc2, sizeof(int), 1, speedPFC2Log);
 
         //pfc3
         fread(&velocita_pfc3, sizeof(int), 1, fpTransducers);
         fflush(speedPFC3Log);
-        fwrite(velocita_pfc3, sizeof(int), 1, speedPFC3Log);
+        fwrite(&velocita_pfc3, sizeof(int), 1, speedPFC3Log);
 
     }
 

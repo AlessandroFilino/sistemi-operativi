@@ -39,23 +39,23 @@ int main(int argc, const char * argv[]) {
  
 }
 
-unsigned char calcoloProb(void){
+unsigned char calcoloProb(){
     unsigned char prob = 0;
     int value = rand();
 
-    if(value % PROB_TOT < PROB_SIGSTOP * PROB_TOT) {
+    if((value % PROB_TOT) < (PROB_SIGSTOP * PROB_TOT)) {
         prob |= 1;
     }
 
-    if(value % PROB_TOT < PROB_SIGINT * PROB_TOT) {
+    if((value % PROB_TOT) < (PROB_SIGINT * PROB_TOT)) {
         prob |= 2;
     }
 
-    if(value % PROB_TOT < PROB_SIGCONT * PROB_TOT) {
+    if((value % PROB_TOT) < (PROB_SIGCONT * PROB_TOT)) {
         prob |= 4;
     }
 
-    if(value % PROB_TOT < PROB_SIGUSR1 * PROB_TOT) {
+    if((value % PROB_TOT) < (PROB_SIGUSR1 * PROB_TOT)) {
         prob |= 8;
     }
 

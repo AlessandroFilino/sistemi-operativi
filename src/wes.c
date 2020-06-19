@@ -6,8 +6,8 @@
 
 int main(int argc, const char *argv[]) {
     FILE *speedPFC1Log = fopen("speedPFC1.log", "r");
-    FILE *speedPFC1Log = fopen("speedPFC2.log", "r");
-    FILE *speedPFC1Log = fopen("speedPFC3.log", "r");
+    FILE *speedPFC2Log = fopen("speedPFC2.log", "r");
+    FILE *speedPFC3Log = fopen("speedPFC3.log", "r");
     FILE *status = fopen("status.log", "w+");
 
     int velocita_pfc1;
