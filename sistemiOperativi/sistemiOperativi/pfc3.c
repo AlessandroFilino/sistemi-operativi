@@ -37,8 +37,7 @@ int main(int argc, const char * argv[]) {
         exit (EXIT_FAILURE);
     }
     
-    FILE *fpTransducers;
-    fpTransducers = fopen("pfcTransducers.txt", "w");
+    FILE *fpTransducers = fopen("pfcTransducers.txt", "w");
     
     for(;;) {
         sleep(1);
@@ -55,7 +54,6 @@ int main(int argc, const char * argv[]) {
         snprintf(velocita, sizeof(velocita), "%f", (calcoloVelocita(distanza, tempo)));
         
         fflush(fpTransducers);
-        
         fwrite(velocita, sizeof(int), 1, fpTransducers);
         
         latitudine_prec = latitudine;

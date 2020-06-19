@@ -5,7 +5,7 @@
 //  Created by Alessandro Filino on 26/05/2020.
 //  Copyright © 2020 Alessandro Filino. All rights reserved.
 //
-#include <stdio.h>
+
 #include "pfcDisconnectedSwitch.h"
 
 int main(int argc, const char * argv[]) {
@@ -14,7 +14,6 @@ int main(int argc, const char * argv[]) {
     int generatoreFallimentiProcess;
     
     int pidFiglio = fork();
-    
     if (pidFiglio < 0) {
         //errore
     } else if (pidFiglio == 0) {
@@ -22,6 +21,8 @@ int main(int argc, const char * argv[]) {
         pfcProcess[0] = getpid();
         //execlp(...);
     }
+
+
     //processo padre
     pidFiglio = fork();
     if (pidFiglio < 0) {
@@ -31,6 +32,8 @@ int main(int argc, const char * argv[]) {
         pfcProcess[1] = getpid();
         // execlp(...);
     }
+
+
     //processo padre
     pidFiglio = fork();
     if (pidFiglio < 0) {
@@ -40,39 +43,37 @@ int main(int argc, const char * argv[]) {
         pfcProcess[2] = getpid();
         // execlp(...);
     }
+
+
     //processo padre
-    int fd[2];
-    pipe(fd);
-    close(fd[READ]);
-    write(fd[WRITE], pfcProcess, sizeof(pfcProcess));
-    
     pidFiglio = fork();
     if (pidFiglio < 0) {
-        
         //errore
     } else if (pidFiglio == 0) {
         //processo figlio
         
         generatoreFallimentiProcess = getpid();
-        // INVIARE FD;
-        execl("generatoreFallimenti.c", fd[0], fd[1], NULL);
+        execl("generatoreFallimenti.c", intToString(pfcProcess[0]), intToString(pfcProcess[1]), intToString(pfcProcess[2]), NULL);
     }
-    
-   //processo padre
-   
-    
-    
-       //execlp(...);
+
+    //execlp(...);
     
     
     return 0;
 }
 
-char** intToString(int pid){
-    char converted[65535];
-    sprintf(converted, "%d", pid);
+char* intToString(int number){
+    int digits;
+
+    do {
+        number /= 10;
+        digits++;
+    } while (number != 0);
+
+    char* buffer = malloc(sizeof(char) * digits + 1); //+1 per avere il carattere di fine stringa
+    sprintf(buffer, "%d", number);
     
-    return converted;
+    return buffer;
 }
 
 int creaFiglio(int* pfcProcess) {

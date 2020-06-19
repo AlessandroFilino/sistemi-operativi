@@ -30,8 +30,7 @@ int main(int argc, const char * argv[]) {
     char comandoControllo_prec[5] = {0};
     
     
-    FILE *fp;
-    fp = fopen("G18.txt", "r");  //PATH FILE G18
+    FILE *fp = fopen("G18.txt", "r");  //PATH FILE G18
     
     if (fp == NULL){
         fprintf(stderr, "File non trovato\n");
@@ -51,13 +50,15 @@ int main(int argc, const char * argv[]) {
         double distanza = calcoloDistanza(latitudine, longitudine, latitudine_prec, longitudine_prec);
         char velocita[5];
         snprintf(velocita, sizeof(velocita), "%f", (calcoloVelocita(distanza, tempo)));
+
         do {
             fd = open ("pfc1Pipe", O_WRONLY);
             if (fd == -1){
                 sleep (1);
             }
         } while (fd == -1);
-            write (fd, velocita, sizeof(velocita));
+
+        write (fd, velocita, sizeof(velocita));
         
         latitudine_prec = latitudine;
         direzioneLatitudine = direzioneLatitudine_prec;

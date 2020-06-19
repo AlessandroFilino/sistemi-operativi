@@ -18,8 +18,7 @@
 #define READ 0
 #define WRITE 1
 
+char* intToString(int number);
 int creaFiglio(int* pfcProcess);
-
-
 
 #endif /* pfcDisconnectedSwitch_h */

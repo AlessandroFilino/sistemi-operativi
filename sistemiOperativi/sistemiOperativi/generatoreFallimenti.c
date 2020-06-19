@@ -7,42 +7,57 @@
 //
 
 #include "generatoreFallimenti.h"
-#define PROB_SIGSTOP 100;
-#define PROB_SIGINT 10000;
-#define PROB_SIGCONT 10;
-#define PROB_SIGUSR1 10;
 
+int main(int argc, const char * argv[]) {
 
-int main() {
-    
-    FILE *failures;
-    failures = fopen("failures.log", "w");
+    srand(time(NULL));
+
+    //int signals[4] = {SIGSTOP, SIGINT, SIGCONT, SIGUSR1};
+    int pfcProcess[3] = {atoi(argv[1]), atoi(argv[2]), atoi(argv[3])};
+    FILE *failures = fopen("failures.log", "w");
     
     sleep(1);
     
-    int pfc = (rand() % 3) + 1;
+    int pfc = rand() % 3;
     unsigned char fallimenti = calcoloProb();
     
-    if (fallimenti & 0){
-        
+    if (fallimenti & 1){
+        kill(pfcProcess[pfc], SIGSTOP);
     }
     
     if (fallimenti & 2){
-        
+        kill(pfcProcess[pfc], SIGINT);
     }
     
     if (fallimenti & 4) {
-        
+        kill(pfcProcess[pfc], SIGCONT);
     }
     
     if (fallimenti & 8){
-        
+        kill(pfcProcess[pfc], SIGUSR1);
     }
  
 }
 
 unsigned char calcoloProb(void){
-    unsigned char prob;
-    
-    return 0;
+    unsigned char prob = 0;
+    int value = rand();
+
+    if(value % PROB_TOT < PROB_SIGSTOP * PROB_TOT) {
+        prob |= 1;
+    }
+
+    if(value % PROB_TOT < PROB_SIGINT * PROB_TOT) {
+        prob |= 2;
+    }
+
+    if(value % PROB_TOT < PROB_SIGCONT * PROB_TOT) {
+        prob |= 4;
+    }
+
+    if(value % PROB_TOT < PROB_SIGUSR1 * PROB_TOT) {
+        prob |= 8;
+    }
+
+    return prob;
 }

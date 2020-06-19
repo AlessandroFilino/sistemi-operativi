@@ -15,7 +15,11 @@
 #include <math.h>
 #include <unistd.h>
 #include <fcntl.h>
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <sys/un.h> /* For AF_UNIX sockets */
 
+#define DEFAULT_PROTOCOL 0
 #define RAGGIO_TERRA_METRI 6367863
 
 double calcoloDistanza(double latitudine, double longitudine, double latitudine_prec, double longitudine_prec);

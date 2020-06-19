@@ -40,55 +40,44 @@ int main(int argc, const char * argv[]) {
         exit (EXIT_FAILURE);
     }
     
-    int serverFd, clientFd, serverLen;
-    int unsigned clientLen;
+    int clientFd, serverLen, result;
     struct sockaddr_un serverUNIXAddress; /*Server address */
     struct sockaddr* serverSockAddrPtr; /*Ptr to server address*/
-    struct sockaddr_un clientUNIXAddress; /*Client address */
-    struct sockaddr* clientSockAddrPtr;/*Ptr to client address*/
     
     serverSockAddrPtr = (struct sockaddr*) &serverUNIXAddress;
     serverLen = sizeof (serverUNIXAddress);
-    clientSockAddrPtr = (struct sockaddr*) &clientUNIXAddress;
-    clientLen = sizeof (clientUNIXAddress);
     
-    serverFd = socket (AF_UNIX, SOCK_STREAM, DEFAULT_PROTOCOL);
-    serverUNIXAddress.sun_family = AF_UNIX; /* Set domain type */
-    strcpy (serverUNIXAddress.sun_path, "pfc2"); /* Set name */
-    unlink ("pfc2"); /* Remove file if it already exists */
-    bind (serverFd, serverSockAddrPtr, serverLen);/*Create file*/
-    listen (serverFd, 1); /* Maximum pending connection length */
+    clientFd = socket (AF_UNIX, SOCK_STREAM, DEFAULT_PROTOCOL);
+    serverUNIXAddress.sun_family = AF_UNIX; /* server domain type */
+    strcpy (serverUNIXAddress.sun_path, "pfc2"); /* server name */
     
-    while (1) {/* Loop forever */ /* Accept a client connection */
-        clientFd = accept (serverFd, clientSockAddrPtr, &clientLen);
-        if (fork () == 0) { /* Create child to send receipe */
+    for(;;) {
+        do {
+            result = connect (clientFd, serverSockAddrPtr, serverLen);
+        } while(result == -1);
+
+        sleep(1);
+
+        caratteriLetti = getline(&riga, &lunghezzaRiga, fp);
             
-            sleep(1);
-            caratteriLetti = getline(&riga, &lunghezzaRiga, fp);
+        if (caratteriLetti == -1 || (strstr(riga,"$GPGLL") == NULL)) {
+            fprintf(stderr, "Errore di lettura\n");
+            exit (EXIT_FAILURE);
+        }
             
-            if (caratteriLetti == -1 || (strstr(riga,"$GPGLL") == NULL)) {
-                fprintf(stderr, "Errore di lettura\n");
-                exit (EXIT_FAILURE);
-            }
+        acquisisciCoordinate(riga, &latitudine, &direzioneLatitudine, &longitudine, &direzioneLongitudine, &tempo, comandoControllo);
+        double distanza = calcoloDistanza(latitudine, longitudine, latitudine_prec, longitudine_prec);
+        char velocita[5];
+        snprintf(velocita, sizeof(velocita), "%f", (calcoloVelocita(distanza, tempo)));
             
-            acquisisciCoordinate(riga, &latitudine, &direzioneLatitudine, &longitudine, &direzioneLongitudine, &tempo, comandoControllo);
-            double distanza = calcoloDistanza(latitudine, longitudine, latitudine_prec, longitudine_prec);
-            char velocita[5];
-            snprintf(velocita, sizeof(velocita), "%f", (calcoloVelocita(distanza, tempo)));
+        write (clientFd, velocita, sizeof(velocita));
             
-            write (clientFd, velocita, sizeof(velocita));
-            
-            latitudine_prec = latitudine;
-            direzioneLatitudine = direzioneLatitudine_prec;
-            longitudine_prec = longitudine;
-            direzioneLongitudine = direzioneLongitudine_prec;
-            tempo_prec = tempo;
-            strcpy(comandoControllo_prec,comandoControllo);
-            
-            close (clientFd); /* Close the socket */
-            exit (/* EXIT_SUCCESS */ 0); /* Terminate */
-        } else
-            close (clientFd); /* Close the client descriptor */
+        latitudine_prec = latitudine;
+        direzioneLatitudine = direzioneLatitudine_prec;
+        longitudine_prec = longitudine;
+        direzioneLongitudine = direzioneLongitudine_prec;
+        tempo_prec = tempo;
+        strcpy(comandoControllo_prec,comandoControllo);
     }
     
     close(clientFd);
