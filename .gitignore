@@ -2,4 +2,9 @@
 sistemiOperativi.xcodeproj
 
 #ignorare i file di CLion
+CMakeLists.txt
+cmake-build-debug
+.idea
 
+#ignorare i file autogenerati da macOS
+.DS_Store
