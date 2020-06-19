@@ -1,0 +1,5 @@
+#ignorare i file di xcode
+sistemiOperativi.xcodeproj
+
+#ignorare i file di CLion
+
