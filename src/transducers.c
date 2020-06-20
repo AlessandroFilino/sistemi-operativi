@@ -3,14 +3,13 @@
 int main(int argc, const char * argv[]) {
     int tempo = 0; //millisecondi trascorsi
 
-
     //pfc1
     char velocita_pfc1[50];
     unlink("pfc1Pipe");
     mknod("pfc1Pipe", S_IFIFO, 0);
     chmod("pfc1Pipe", 0660);
     int fd = open("pfc1Pipe", O_RDONLY | O_NONBLOCK);
-    FILE *speedPFC1Log = file_open("speedPFC1.log", "w");
+    FILE *speedPFC1Log = open_file("speedPFC1.log", "w");
 
     //pfc2
     int serverFd, clientFd, serverLen, result;
@@ -35,7 +34,7 @@ int main(int argc, const char * argv[]) {
     listen (serverFd, 1); /* Maximum pending connection length */
 
     FILE *speedPFC2Log = fopen("speedPFC2.log", "w");
-    char* velocita_pfc2[50];
+    char* velocita_pfc2;
     long caratteriLetti;
     size_t lunghezzaRiga = 5;
 
@@ -52,7 +51,7 @@ int main(int argc, const char * argv[]) {
             usleep(5);
 
             clientFd = accept(serverFd, clientSockAddrPtr, &clientLen);
-            caratteriLetti = getline(&velocita_pfc2, &lunghezzaRiga, serverFd);
+            velocita_pfc2 = readLine(serverFd);
         }
     }
 
@@ -76,9 +75,9 @@ int main(int argc, const char * argv[]) {
             fwrite(&velocita_pfc2, sizeof(int), 1, speedPFC2Log);
             fwrite(&velocita_pfc3, sizeof(int), 1, speedPFC3Log);
 
-            velocita_pfc1 = -1;
+            /*velocita_pfc1 = -1;
             velocita_pfc2 = -1;
-            velocita_pfc3 = -1;
+            velocita_pfc3 = -1;*/
         }
 
         tempo++;
@@ -87,5 +86,17 @@ int main(int argc, const char * argv[]) {
     close (clientFd); /* Close the socket */
 
     return 0;
+}
+
+char *readLine(int fd) {
+/* Read a single ’\0’-terminated line into str from fd */
+    int n;
+    char *buffer = malloc(sizeof(char) * 5);
+
+    do { /* Read characters until ’\0’ or end-of-input */
+        n = read (fd, buffer, 1); /* Read one character */
+    } while (n > 0 && *buffer++ != '\0');
+
+    return buffer;
 }
 

@@ -26,7 +26,7 @@ int main(int argc, const char * argv[]) {
         fwrite(velocita, sizeof(int), 1, fpTransducers);
     }
 
-    close(fp);
+    fclose(fp);
     close(fd);
     fclose(fpTransducers);
 }

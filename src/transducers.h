@@ -16,4 +16,6 @@
 
 #define DEFAULT_PROTOCOL 0
 
-#endif //transducers_h
+char *readLine(int fd);
+
+#endif

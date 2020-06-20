@@ -4,9 +4,9 @@
 
 #include "pfc.h"
 
-void acquisisciCoordinate(char* riga, double* latitudine, char* direzioneLatitudine, double* longitudine, char* direzioneLongitudine){
+void acquisisciCoordinate(char* line, double* latitudine, char* direzioneLatitudine, double* longitudine, char* direzioneLongitudine){
     char* tok;
-    tok = strtok(riga, ",");
+    tok = strtok(line, ",");
 
     if(tok == NULL){
         fprintf(stderr, "Errore\n");
@@ -36,30 +36,22 @@ double calcoloDistanza(double latitudine, double longitudine, double latitudine_
     return RAGGIO_TERRA_METRI * c;
 }
 
-double calcoloVelocita(int spazio, int tempo){
+double calcoloVelocita(double spazio, int tempo){
     /* Spazio in metri, tempo in secondi M/s */
     return spazio/tempo;
 }
 
-char *velocitaCalcolata(FILE *fp, double *latitudine_prec, double *longitudine_prec) {
-    char *velocita = malloc(sizeof(char) * 5);
-    char *riga = NULL;
-    size_t lunghezzaRiga = 30;
-
+char *velocitaCalcolata(char *line, double *latitudine_prec, double *longitudine_prec) {
     double latitudine;
     char direzioneLatitudine ;
     double longitudine;
     char direzioneLongitudine;
+    double distanza;
 
-    long caratteriLetti = getline(&riga, &lunghezzaRiga, fp);
+    char *velocita = malloc(sizeof(char) * 5);
 
-    if (caratteriLetti == -1 || (strstr(riga,"$GPGLL") == NULL)) {
-        fprintf(stderr, "Errore di lettura\n");
-        exit(EXIT_FAILURE);
-    }
-
-    acquisisciCoordinate(riga, &latitudine, &direzioneLatitudine, &longitudine, &direzioneLongitudine);
-    distanza = calcoloDistanza(latitudine, longitudine, latitudine_prec, longitudine_prec);
+    acquisisciCoordinate(line, &latitudine, &direzioneLatitudine, &longitudine, &direzioneLongitudine);
+    distanza = calcoloDistanza(latitudine, longitudine, *latitudine_prec, *longitudine_prec);
 
     snprintf(velocita, sizeof(velocita), "%f", (calcoloVelocita(distanza, TEMPO)));
 
@@ -67,6 +59,24 @@ char *velocitaCalcolata(FILE *fp, double *latitudine_prec, double *longitudine_p
     *longitudine_prec = longitudine;
 
     return velocita;
+}
+
+ssize_t readCorrectLine(char *buffer, size_t *bufferLength, FILE *fp) {
+    /*
+     * char *strstr(const char *haystack, const char *needle)
+     *
+     * finds the first occurrence of the substring needle in the string haystack.
+     * This function returns a pointer to the first occurrence in haystack of any
+     * of the entire sequence of characters specified in needle, or a null pointer
+     * if the sequence is not present in haystack
+     */
+    ssize_t read;
+
+    do {
+        read = getline(&buffer, bufferLength, fp);
+    } while(read != -1 && strstr(buffer, NMEA_FORMAT) == NULL);
+
+    return read;
 }
 
 /*long conversioneTempo(char* tempo){

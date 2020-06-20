@@ -8,15 +8,20 @@
 
 #include "pfcDisconnectedSwitch.h"
 
-int main(int argc, const char * argv[]) {
-    
+int main(int argc, const char *argv[]) {
+    //char *filename_g18 = argv[1];
+    char *filename_g18 = "../sistemioperativi/doc/G18.txt";
+
     int pfcProcess[3];
     int generatoreFallimentiProcess;
 
     /*Install death-of-child handler */
     signal (SIGCHLD, childHandler);
 
-    if(creaFiglio() == 0) {
+    char *PFC1_argv[] = {"pfc1", filename_g18};
+    pfcProcess[0] = creaFiglio(&execv, "pfc1", PFC1_argv);
+
+    /*if(creaFiglio() == 0) {
         pfcProcess[0] = getpid();
         execl("pfc1", "pfc1", argv[1], NULL);
     }
@@ -40,24 +45,30 @@ int main(int argc, const char * argv[]) {
                 intToString(pfcProcess[1]),
                 intToString(pfcProcess[2]),
                 NULL);
-    }
+    }*/
 
-    //execlp(...);
-    //signal(SIGCHLD, SIG_IGN); /*ignore death-of-child signals to prevent zombies*/
-    //kill(pidFiglio, SIGN_INT) per tutti i figli
-    //kill(pidFiglio, 0) restituisce 0 se esiste un processo con pid uguale a pidFiglio, altrimenti -1
+    for(;;) {
+        //execlp(...);
+        //signal(SIGCHLD, SIG_IGN); /*ignore death-of-child signals to prevent zombies*/
+        //kill(pidFiglio, SIGN_INT) per tutti i figli
+        //kill(pidFiglio, 0) restituisce 0 se esiste un processo con pid uguale a pidFiglio, altrimenti -1
+    }
 
     return 0;
 }
 
-int creaFiglio() {
+int creaFiglio(int (*execv_function)(const char*, char* const*), char *filename, char *argv[]) {
     int pid = fork();
 
     if (pid < 0) { /* error occurred */
         //TODO usare perror
 
         fprintf(stderr, "Fork Failed\n");
-        exit(-1);
+        exit(EXIT_FAILURE);
+    } else if(pid == 0) {
+        if(execv_function(filename, argv) == -1) {
+            exit(EXIT_FAILURE);
+        }
     }
 
     return pid;
@@ -77,12 +88,13 @@ char* intToString(int number){
     return buffer;
 }
 
-void childHandler (int sig) { /* Executed if the child dies */
+void childHandler(int sig) { /* Executed if the child dies */
     int childPid, childStatus; /* before the parent */
 
     /* Accept child termination code */
     childPid = wait(&childStatus);
     printf ("Child %d terminated\n", childPid);
-    exit(0);
+
+    exit(EXIT_SUCCESS);
 }
 

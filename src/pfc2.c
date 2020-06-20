@@ -38,7 +38,7 @@ int main(int argc, const char * argv[]) {
         write (clientFd, velocita, sizeof(velocita));
     }
 
-    close(fp);
+    fclose(fp);
     close(clientFd);
 }
 

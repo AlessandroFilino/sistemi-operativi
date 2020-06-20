@@ -23,12 +23,14 @@
 #define TEMPO 1 //1 secondo
 #define DEFAULT_PROTOCOL 0
 #define RAGGIO_TERRA_METRI 6367863
+#define NMEA_FORMAT "$GPGLL"
 
 double calcoloDistanza(double latitudine, double longitudine, double latitudine_prec, double longitudine_prec);
 double gradiToRadianti(double gradi);
-void acquisisciCoordinate(char* riga, double* latitudine, char* direzioneLatitudine, double* longitudine, char* direzioneLongitudine);
+void acquisisciCoordinate(char* line, double* latitudine, char* direzioneLatitudine, double* longitudine, char* direzioneLongitudine);
 //long conversioneTempo(char* tempo);
-double calcoloVelocita(int spazio, int tempo);
-char *velocitaCalcolata(FILE *fp, double *latitudine_prec, double *longitudine_prec);
+double calcoloVelocita(double spazio, int tempo);
+char *velocitaCalcolata(char *line, double *latitudine_prec, double *longitudine_prec);
+ssize_t readCorrectLine(char *buffer, size_t *bufferLength, FILE *fp);
 
-#endif /* pfc_h */
+#endif

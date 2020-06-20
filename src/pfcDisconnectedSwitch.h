@@ -17,7 +17,7 @@
 
 
 char* intToString(int number);
-int creaFiglio();
+int creaFiglio(int (*execv_function)(const char*, char* const*), char *filename, char *argv[]);
 void childHandler(int);
 
-#endif /* pfcDisconnectedSwitch_h */
+#endif
