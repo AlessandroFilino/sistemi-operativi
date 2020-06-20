@@ -12,6 +12,7 @@
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <sys/un.h> /* For AF_UNIX sockets */
+#include "utility.h"
 
 #define DEFAULT_PROTOCOL 0
 

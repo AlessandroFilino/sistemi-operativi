@@ -12,54 +12,55 @@ int main(int argc, const char * argv[]) {
     
     int pfcProcess[3];
     int generatoreFallimentiProcess;
-    
-    int pidFiglio = fork();
-    if (pidFiglio < 0) {
-        //errore
-    } else if (pidFiglio == 0) {
-        //processo figlio
+
+    /*Install death-of-child handler */
+    signal (SIGCHLD, childHandler);
+
+    if(creaFiglio() == 0) {
         pfcProcess[0] = getpid();
-        //execlp(...);
+        execl("pfc1", "pfc1", argv[1], NULL);
     }
 
-
-    //processo padre
-    pidFiglio = fork();
-    if (pidFiglio < 0) {
-        //errore
-    } else if (pidFiglio == 0) {
-        //processo figlio
+    if(creaFiglio() == 0) {
         pfcProcess[1] = getpid();
-        // execlp(...);
+        execl("pfc2", "pfc2", argv[1], NULL);
     }
 
-
-    //processo padre
-    pidFiglio = fork();
-    if (pidFiglio < 0) {
-        //errore
-    } else if (pidFiglio == 0) {
-        //processo figlio
+    if(creaFiglio() == 0) {
         pfcProcess[2] = getpid();
-        // execlp(...);
+        execl("pfc3", "pfc3", argv[1], NULL);
     }
 
-
-    //processo padre
-    pidFiglio = fork();
-    if (pidFiglio < 0) {
-        //errore
-    } else if (pidFiglio == 0) {
-        //processo figlio
-        
+    if(creaFiglio() == 0) {
         generatoreFallimentiProcess = getpid();
-        execl("generatoreFallimenti.c", intToString(pfcProcess[0]), intToString(pfcProcess[1]), intToString(pfcProcess[2]), NULL);
+        execl(
+                "generatoreFallimenti",
+                "generatoreFallimenti",
+                intToString(pfcProcess[0]),
+                intToString(pfcProcess[1]),
+                intToString(pfcProcess[2]),
+                NULL);
     }
 
     //execlp(...);
-    
-    
+    //signal(SIGCHLD, SIG_IGN); /*ignore death-of-child signals to prevent zombies*/
+    //kill(pidFiglio, SIGN_INT) per tutti i figli
+    //kill(pidFiglio, 0) restituisce 0 se esiste un processo con pid uguale a pidFiglio, altrimenti -1
+
     return 0;
+}
+
+int creaFiglio() {
+    int pid = fork();
+
+    if (pid < 0) { /* error occurred */
+        //TODO usare perror
+
+        fprintf(stderr, "Fork Failed\n");
+        exit(-1);
+    }
+
+    return pid;
 }
 
 char* intToString(int number){
@@ -76,15 +77,12 @@ char* intToString(int number){
     return buffer;
 }
 
-int creaFiglio(int* pfcProcess) {
-    int pidFiglio = fork();
-    if (pidFiglio < 0) { /* error occurred */
-        fprintf(stderr, "Fork Failed\n");
-        exit(-1);
-    } else if (pidFiglio == 0) {
-        *pfcProcess = getpid();
-    }
-    
-    return pidFiglio;
+void childHandler (int sig) { /* Executed if the child dies */
+    int childPid, childStatus; /* before the parent */
+
+    /* Accept child termination code */
+    childPid = wait(&childStatus);
+    printf ("Child %d terminated\n", childPid);
+    exit(0);
 }
 

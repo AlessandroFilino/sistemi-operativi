@@ -15,10 +15,9 @@
 #include <fcntl.h>
 #include <string.h>
 
-#define READ 0
-#define WRITE 1
 
 char* intToString(int number);
-int creaFiglio(int* pfcProcess);
+int creaFiglio();
+void childHandler(int);
 
 #endif /* pfcDisconnectedSwitch_h */
