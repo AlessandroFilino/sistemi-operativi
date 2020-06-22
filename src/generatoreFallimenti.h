@@ -1,19 +1,5 @@
-//
-//  generatoreFallimenti.h
-//  sistemiOperativi
-//
-//  Created by Alessandro Filino on 18/06/2020.
-//  Copyright © 2020 Alessandro Filino. All rights reserved.
-//
-
 #ifndef generatoreFallimenti_h
 #define generatoreFallimenti_h
-
-#include <stdio.h>
-#include <stdlib.h>
-#include <unistd.h>
-#include <signal.h>
-#include <time.h>
 
 #define PROB_SIGSTOP 1/100
 #define PROB_SIGINT 1/10000
@@ -23,4 +9,4 @@
 
 unsigned char calcoloProb(void);
 
-#endif /* generatoreFallimenti_h */
+#endif

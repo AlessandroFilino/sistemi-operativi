@@ -1,12 +1,10 @@
-//
-//  pfcDisconnectedSwitch.c
-//  sistemiOperativi
-//
-//  Created by Alessandro Filino on 26/05/2020.
-//  Copyright © 2020 Alessandro Filino. All rights reserved.
-//
-
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <fcntl.h>
+#include <string.h>
 #include "pfcDisconnectedSwitch.h"
+#include "utility.h"
 
 int main(int argc, const char *argv[]) {
     //char *filename_g18 = argv[1];
@@ -19,73 +17,30 @@ int main(int argc, const char *argv[]) {
     signal (SIGCHLD, childHandler);
 
     char *PFC1_argv[] = {"pfc1", filename_g18};
-    pfcProcess[0] = creaFiglio(&execv, "pfc1", PFC1_argv);
+    pfcProcess[0] = createChild(&execv, "pfc1", PFC1_argv);
 
-    /*if(creaFiglio() == 0) {
-        pfcProcess[0] = getpid();
-        execl("pfc1", "pfc1", argv[1], NULL);
-    }
+    /*char *PFC2_argv[] = {"pfc2", filename_g18};
+    pfcProcess[1] = createChild(&execv, "pfc2", PFC2_argv);
 
-    if(creaFiglio() == 0) {
-        pfcProcess[1] = getpid();
-        execl("pfc2", "pfc2", argv[1], NULL);
-    }
+    char *PFC3_argv[] = {"pfc3", filename_g18};
+    pfcProcess[2] = createChild(&execv, "pfc3", PFC3_argv);
 
-    if(creaFiglio() == 0) {
-        pfcProcess[2] = getpid();
-        execl("pfc3", "pfc3", argv[1], NULL);
-    }
+    char *generatoreFallimenti_argv[] = {
+            "generatoreFallimenti",
+            intToString(pfcProcess[0]),
+            intToString(pfcProcess[1]),
+            intToString(pfcProcess[2])};
+    generatoreFallimentiProcess = createChild(&execv, "generatoreFallimenti_argv", generatoreFallimenti_argv);
 
-    if(creaFiglio() == 0) {
-        generatoreFallimentiProcess = getpid();
-        execl(
-                "generatoreFallimenti",
-                "generatoreFallimenti",
-                intToString(pfcProcess[0]),
-                intToString(pfcProcess[1]),
-                intToString(pfcProcess[2]),
-                NULL);
-    }*/
 
     for(;;) {
         //execlp(...);
-        //signal(SIGCHLD, SIG_IGN); /*ignore death-of-child signals to prevent zombies*/
+        //signal(SIGCHLD, SIG_IGN); //ignore death-of-child signals to prevent zombies
         //kill(pidFiglio, SIGN_INT) per tutti i figli
         //kill(pidFiglio, 0) restituisce 0 se esiste un processo con pid uguale a pidFiglio, altrimenti -1
-    }
+    }*/
 
     return 0;
-}
-
-int creaFiglio(int (*execv_function)(const char*, char* const*), char *filename, char *argv[]) {
-    int pid = fork();
-
-    if (pid < 0) { /* error occurred */
-        //TODO usare perror
-
-        fprintf(stderr, "Fork Failed\n");
-        exit(EXIT_FAILURE);
-    } else if(pid == 0) {
-        if(execv_function(filename, argv) == -1) {
-            exit(EXIT_FAILURE);
-        }
-    }
-
-    return pid;
-}
-
-char* intToString(int number){
-    int digits;
-
-    do {
-        number /= 10;
-        digits++;
-    } while (number != 0);
-
-    char* buffer = malloc(sizeof(char) * digits + 1); //+1 per avere il carattere di fine stringa
-    sprintf(buffer, "%d", number);
-    
-    return buffer;
 }
 
 void childHandler(int sig) { /* Executed if the child dies */

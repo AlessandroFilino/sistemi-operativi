@@ -1,51 +1,73 @@
-//
-// Created by Gioele Dimilta on 18/06/20.
-//
-
+#include <stdlib.h>
+#include <stdio.h>
+#include <unistd.h>
+#include <fcntl.h>
 #include "wes.h"
+#include "utility.h"
 
 int main(int argc, const char *argv[]) {
-    FILE *speedPFC1Log = fopen("speedPFC1.log", "r");
-    FILE *speedPFC2Log = fopen("speedPFC2.log", "r");
-    FILE *speedPFC3Log = fopen("speedPFC3.log", "r");
-    FILE *status = fopen("status.log", "w+");
+    int speedPFC1Log = open("../sistemioperativi/log/speedPFC1.log", O_RDONLY);
+    int speedPFC2Log = open("../sistemioperativi/log/speedPFC2.log", O_RDONLY);
+    int speedPFC3Log = open("../sistemioperativi/log/speedPFC3.log", O_RDONLY);
+    FILE *status = open_file("../sistemioperativi/log/status.log", "w+");
 
-    int velocita_pfc1;
-    int velocita_pfc2;
-    int velocita_pfc3;
+    double velocita_pfc1;
+    double velocita_pfc2;
+    double velocita_pfc3;
 
-    for(;;) {
+    for(int i=0; i<50; i++) {
         sleep(1);
 
-        fread(&velocita_pfc1, sizeof(int), 1, speedPFC1Log);
-        fread(&velocita_pfc2, sizeof(int), 1, speedPFC2Log);
-        fread(&velocita_pfc3, sizeof(int), 1, speedPFC3Log);
+        velocita_pfc1 = readSpeed(speedPFC1Log);
+        velocita_pfc2 = readSpeed(speedPFC2Log);
+        velocita_pfc3 = readSpeed(speedPFC3Log);
+
+        /*
+         * TODO: controllare che velocita_pfc1, velocita_pfc2
+         *       e velocita_pfc3 abbiano valori diversi da '\0'
+         */
 
         if(velocita_pfc1 == velocita_pfc2) {
             if(velocita_pfc1 == velocita_pfc3) {
-                printf("OK");
-                fwrite("OK", sizeof(char), 2, status);
+                printf("OK\n");
+                fwrite("OK\n", sizeof(char), 3, status);
             } else {
-                printf("ERRORE - PFC3");
-                fwrite("ERRORE - PFC3", sizeof(char), 13, status);
-                //invio messaggio a pfc disconnect switch
+                printf("ERRORE - PFC3\n");
+                fwrite("ERRORE - PFC3\n", sizeof(char), 14, status);
+                //TODO invio messaggio a pfc disconnect switch
             }
         } else {
             if(velocita_pfc1 == velocita_pfc3) {
-                printf("ERRORE - PFC2");
-                fwrite("ERRORE - PFC2", sizeof(char), 13, status);
-                //invio messaggio a pfc disconnect switch
+                printf("ERRORE - PFC2\n");
+                fwrite("ERRORE - PFC2\n", sizeof(char), 14, status);
+                //TODO invio messaggio a pfc disconnected switch
             } else if(velocita_pfc2 == velocita_pfc3) {
-                printf("ERRORE - PFC1");
-                fwrite("ERRORE - PFC1", sizeof(char), 13, status);
-                //invio messaggio a pfc disconnect switch
+                printf("ERRORE - PFC1\n");
+                fwrite("ERRORE - PFC1\n", sizeof(char), 14, status);
+                //TODO invio messaggio a pfc disconnected switch
             } else {
-                printf("EMERGENZA");
-                fwrite("EMERGENZA", sizeof(char), 9, status);
-                //invio messaggio a pfc disconnect switch
+                printf("EMERGENZA\n");
+                fwrite("EMERGENZA\n", sizeof(char), 10, status);
+                //TODO invio messaggio a pfc disconnected switch
             }
         }
     }
 
+    close(speedPFC1Log);
+    close(speedPFC2Log);
+    close(speedPFC3Log);
+    fclose(status);
+
     return 0;
+}
+
+double readSpeed(int fd) {
+    double speed;
+    char *buffer = calloc(10, sizeof(char));
+
+    readLine(fd, buffer);
+    speed = strtod(buffer, NULL);
+    free(buffer);
+
+    return speed;
 }

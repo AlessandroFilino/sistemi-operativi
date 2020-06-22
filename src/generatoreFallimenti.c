@@ -1,11 +1,8 @@
-//
-//  generatoreFallimenti.c
-//  sistemiOperativi
-//
-//  Created by Alessandro Filino on 18/06/2020.
-//  Copyright © 2020 Alessandro Filino. All rights reserved.
-//
-
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <signal.h>
+#include <time.h>
 #include "generatoreFallimenti.h"
 
 int main(int argc, const char * argv[]) {
