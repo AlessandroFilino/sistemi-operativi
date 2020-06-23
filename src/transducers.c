@@ -91,34 +91,34 @@ int main(int argc, const char * argv[]) {
 
 
         //pfc1
-        read = readLine(fd_PFC1, velocita_pfc1);
+        read = readLine(fd_PFC1, velocita_pfc1, '\0');
         if(velocita_pfc1[0] != '\0') {
             fwrite(velocita_pfc1, sizeof(char), read, speedPFC1Log);
             fflush(speedPFC1Log);
             printf("pfc1 - transducer: %s (%d)\n", velocita_pfc1, tempo);
-            memset(velocita_pfc1, '\0', sizeof(char) * 9);
+            memset(velocita_pfc1, '\0', sizeof(char) * 10);
         }
         printf("pfc1 - transducer: %s (%d)\n", velocita_pfc1, tempo);
 
 
         //pfc2
-        read = readLine(clientFd, velocita_pfc2);
+        read = readLine(clientFd, velocita_pfc2, '\0');
         if(velocita_pfc2[0] != '\0') {
             fwrite(velocita_pfc2, sizeof(char), read, speedPFC2Log);
             fflush(speedPFC2Log);
             printf("pfc2 - transducer: %s (%d)\n", velocita_pfc2, tempo);
-            memset(velocita_pfc2, '\0', sizeof(char) * 9);
+            memset(velocita_pfc2, '\0', sizeof(char) * 10);
         }
         printf("pfc2 - transducer: %s (%d)\n", velocita_pfc2, tempo);
 
 
         //pfc3
-        read = readLine(fd_PFC3, velocita_pfc3);
+        read = readLine(fd_PFC3, velocita_pfc3, '\0');
         if(velocita_pfc3[0] != '\0') {
             fwrite(velocita_pfc3, sizeof(char), read, speedPFC3Log);
             fflush(speedPFC3Log);
             printf("pfc3 - transducer: %s (%d)\n", velocita_pfc3, tempo);
-            memset(velocita_pfc3, '\0', sizeof(char) * 9);
+            memset(velocita_pfc3, '\0', sizeof(char) * 10);
         }
         printf("pfc3 - transducer: %s (%d)\n", velocita_pfc3, tempo);
 

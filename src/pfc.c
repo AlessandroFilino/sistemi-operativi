@@ -3,9 +3,16 @@
 #include <string.h>
 #include <math.h>
 #include <unistd.h>
-#include <fcntl.h>
 #include "pfc.h"
 #include "utility.h"
+
+void changeSigusr(enum boolean *sigusr) {
+    *sigusr = !(*sigusr);
+}
+
+double changeSpeed(double speed) {
+    return (double) (((int) round(speed)) << 2);
+}
 
 ssize_t readCorrectLine(char *buffer, size_t bufferLength, FILE *fp) {
     /*
@@ -62,7 +69,7 @@ double calcoloVelocita(double spazio, int tempo){
     return spazio/tempo;
 }
 
-int exe(int fd, FILE *fp, double *latitudine_prec, double *longitudine_prec) {
+int exe(int fd, FILE *fp, double *latitudine_prec, double *longitudine_prec, enum boolean *sigusr) {
     double latitudine;
     double longitudine;
     double distance;
@@ -79,6 +86,11 @@ int exe(int fd, FILE *fp, double *latitudine_prec, double *longitudine_prec) {
         acquisisciCoordinate(line, &latitudine, &longitudine);
         distance = calcoloDistanza(latitudine, longitudine, *latitudine_prec, *longitudine_prec);
         speed = calcoloVelocita(distance, TEMPO);
+
+        if(*sigusr == TRUE) {
+            speed = changeSpeed(speed);
+            changeSigusr(sigusr);
+        }
     } else {
         speed = -1;
     }
@@ -111,7 +123,13 @@ int exe(int fd, FILE *fp, double *latitudine_prec, double *longitudine_prec) {
         return -1;
     }
 
-    write(fd, message, messageLength + 1);
+
+    /*
+     * TODO: sizeof(char) potrebbe essere eliminato in quanto
+     *       la write scrive su un file leggendo da una stringa
+     */
+
+    write(fd, message, sizeof(char) * (messageLength + 1));
     printf("%s\n", message);
 
     *latitudine_prec = latitudine;
@@ -121,36 +139,6 @@ int exe(int fd, FILE *fp, double *latitudine_prec, double *longitudine_prec) {
     free(message);
 
     return read;
-}
-
-int connectPipe(char *pipename, int mode) {
-    int fd;
-
-    do {
-        fd = open(pipename, mode);
-        if (fd == -1) {
-            printf("trying to connect...\n");
-            usleep((1 * 1000) * 400); //400 millisecondi
-        }
-    } while (fd == -1);
-    printf("connected!\n");
-
-    return fd;
-}
-
-int connectSocket(int clientFd, const struct sockaddr* serverSockAddrPtr, socklen_t serverLen) {
-    int result;
-
-    do {
-        result = connect(clientFd, serverSockAddrPtr, serverLen);
-        if (result == -1) {
-            printf("trying to connect...\n");
-            usleep((1 * 1000) * 400); //400 millisecondi
-        }
-    } while(result == -1);
-    printf("connected!\n");
-
-    return result;
 }
 
 /*long conversioneTempo(char* tempo){

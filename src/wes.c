@@ -10,6 +10,7 @@ int main(int argc, const char *argv[]) {
     int speedPFC2Log = open("../sistemioperativi/log/speedPFC2.log", O_RDONLY);
     int speedPFC3Log = open("../sistemioperativi/log/speedPFC3.log", O_RDONLY);
     FILE *status = open_file("../sistemioperativi/log/status.log", "w+");
+    int fd = connectPipe("wesPipe", O_WRONLY);
 
     double velocita_pfc1;
     double velocita_pfc2;
@@ -32,23 +33,23 @@ int main(int argc, const char *argv[]) {
                 printf("OK\n");
                 fwrite("OK\n", sizeof(char), 3, status);
             } else {
-                printf("ERRORE - PFC3\n");
-                fwrite("ERRORE - PFC3\n", sizeof(char), 14, status);
-                //TODO invio messaggio a pfc disconnect switch
+                printf("ERRORE-PFC3\n");
+                fwrite("ERRORE-PFC3\n", sizeof(char), 12, status);
+                write(fd, "ERRORE-PFC3\0", sizeof(char) * 12);
             }
         } else {
             if(velocita_pfc1 == velocita_pfc3) {
-                printf("ERRORE - PFC2\n");
-                fwrite("ERRORE - PFC2\n", sizeof(char), 14, status);
-                //TODO invio messaggio a pfc disconnected switch
+                printf("ERRORE-PFC2\n");
+                fwrite("ERRORE-PFC2\n", sizeof(char), 12, status);
+                write(fd, "ERRORE-PFC2\0", sizeof(char) * 12);
             } else if(velocita_pfc2 == velocita_pfc3) {
-                printf("ERRORE - PFC1\n");
-                fwrite("ERRORE - PFC1\n", sizeof(char), 14, status);
-                //TODO invio messaggio a pfc disconnected switch
+                printf("ERRORE-PFC1\n");
+                fwrite("ERRORE-PFC1\n", sizeof(char), 12, status);
+                write(fd, "ERRORE-PFC1\0", sizeof(char) * 12);
             } else {
                 printf("EMERGENZA\n");
                 fwrite("EMERGENZA\n", sizeof(char), 10, status);
-                //TODO invio messaggio a pfc disconnected switch
+                write(fd, "EMERGENZA\0", sizeof(char) * 10);
             }
         }
     }
@@ -56,6 +57,7 @@ int main(int argc, const char *argv[]) {
     close(speedPFC1Log);
     close(speedPFC2Log);
     close(speedPFC3Log);
+    close(fd);
     fclose(status);
 
     return 0;
@@ -65,7 +67,7 @@ double readSpeed(int fd) {
     double speed;
     char *buffer = calloc(10, sizeof(char));
 
-    readLine(fd, buffer);
+    readLine(fd, buffer, '\n');
     speed = strtod(buffer, NULL);
     free(buffer);
 

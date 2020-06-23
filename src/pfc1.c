@@ -2,12 +2,18 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <fcntl.h>
+#include <signal.h>
 #include "utility.h"
 #include "pfc.h"
+
+enum boolean PFC1_sigusr;
+void sigusrHandler(int sig);
 
 int main(int argc, const char * argv[]) {
     double latitudine_prec = 0;
     double longitudine_prec = 0;
+
+    signal(SIGUSR1, &sigusrHandler);
 
     //TODO char *filename_g18 = argv[1];
     char *filename_g18 = "../sistemioperativi/doc/G18.txt";
@@ -28,7 +34,7 @@ int main(int argc, const char * argv[]) {
         //TODO usare sleep(1)
         usleep((1 * 1000) * 1000); //1000 millisecondi
 
-        read = exe(fd, fp, &latitudine_prec, &longitudine_prec);
+        read = exe(fd, fp, &latitudine_prec, &longitudine_prec, &PFC1_sigusr);
     }
 
     fclose(fp);
@@ -36,6 +42,13 @@ int main(int argc, const char * argv[]) {
 
     return 0;
 }
+
+void sigusrHandler(int sig) {
+    changeSigusr(&PFC1_sigusr);
+}
+
+
+
 
 
 

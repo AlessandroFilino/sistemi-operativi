@@ -1,7 +1,7 @@
 #ifndef pfcDisconnectedSwitch_h
 #define pfcDisconnectedSwitch_h
 
-char* intToString(int number);
 void childHandler(int);
+int getErrorInfo(char *error);
 
 #endif

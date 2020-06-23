@@ -8,18 +8,16 @@
 #define MAX_SPEED_DIGITS 5
 #define MAX_LINE_LENGTH 150
 
-#include <sys/socket.h>
-#include <sys/un.h>
+#include <utility.h>
 
+void changeSigusr(enum boolean *sigusr);
+double changeSpeed(double speed);
 ssize_t readCorrectLine(char *buffer, size_t bufferLength, FILE *fp);
 void acquisisciCoordinate(char* line, double* latitudine, double* longitudine);
 double calcoloDistanza(double latitudine, double longitudine, double latitudine_prec, double longitudine_prec);
 double gradiToRadianti(double gradi);
 double calcoloVelocita(double spazio, int tempo);
 
-int exe(int fd, FILE *fp, double *latitudine_prec, double *longitudine_prec);
-
-int connectPipe(char *pipename, int mode);
-int connectSocket(int clientFd, const struct sockaddr* serverSockAddrPtr, socklen_t serverLen);
+int exe(int fd, FILE *fp, double *latitudine_prec, double *longitudine_prec, enum boolean *sigusr);
 
 #endif

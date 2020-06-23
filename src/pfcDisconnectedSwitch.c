@@ -3,6 +3,8 @@
 #include <unistd.h>
 #include <fcntl.h>
 #include <string.h>
+#include <signal.h>
+#include <sys/stat.h>
 #include "pfcDisconnectedSwitch.h"
 #include "utility.h"
 
@@ -10,35 +12,92 @@ int main(int argc, const char *argv[]) {
     //char *filename_g18 = argv[1];
     char *filename_g18 = "../sistemioperativi/doc/G18.txt";
 
+    int pid;
+    int pfcNumber;
     int pfcProcess[3];
     int generatoreFallimentiProcess;
 
-    /*Install death-of-child handler */
+    int read;
+    char *error = calloc(14 + 1, sizeof(char));
+    unlink("wesPipe");
+    mknod("wesPipe", S_IFIFO, 0);
+    chmod("wesPipe", 0660);
+    //TODO pipe bloccante?
+    int wesPipe = open("wesPipe", O_RDONLY | O_NONBLOCK);
+    FILE *switchLog = open_file("../sistemioperativi/log/switch.log", "w");
+
+    /*
+     * TODO: signal(SIGCHLD, SIG_IGN); (ignore death-of-child signals to prevent zombies)
+     *       oppure
+     *       signal (SIGCHLD, childHandler); (Install death-of-child handler)
+     *       ?
+     */
     signal (SIGCHLD, childHandler);
 
     char *PFC1_argv[] = {"pfc1", filename_g18};
     pfcProcess[0] = createChild(&execv, "pfc1", PFC1_argv);
 
-    /*char *PFC2_argv[] = {"pfc2", filename_g18};
+    char *PFC2_argv[] = {"pfc2", filename_g18};
     pfcProcess[1] = createChild(&execv, "pfc2", PFC2_argv);
 
     char *PFC3_argv[] = {"pfc3", filename_g18};
     pfcProcess[2] = createChild(&execv, "pfc3", PFC3_argv);
 
-    char *generatoreFallimenti_argv[] = {
-            "generatoreFallimenti",
-            intToString(pfcProcess[0]),
-            intToString(pfcProcess[1]),
-            intToString(pfcProcess[2])};
+    char *pfc1Process = malloc(sizeof(char) * 10);
+    char *pfc2Process = malloc(sizeof(char) * 10);
+    char *pfc3Process = malloc(sizeof(char) * 10);
+    intToString(pfc1Process, 10, pfcProcess[0]);
+    intToString(pfc2Process, 10, pfcProcess[1]);
+    intToString(pfc3Process, 10, pfcProcess[2]);
+
+    char *generatoreFallimenti_argv[] = {"generatoreFallimenti", pfc1Process, pfc2Process, pfc3Process};
     generatoreFallimentiProcess = createChild(&execv, "generatoreFallimenti_argv", generatoreFallimenti_argv);
 
+    char **pfcArgv[] = {PFC1_argv, PFC2_argv, PFC3_argv};
 
-    for(;;) {
-        //execlp(...);
-        //signal(SIGCHLD, SIG_IGN); //ignore death-of-child signals to prevent zombies
-        //kill(pidFiglio, SIGN_INT) per tutti i figli
-        //kill(pidFiglio, 0) restituisce 0 se esiste un processo con pid uguale a pidFiglio, altrimenti -1
-    }*/
+    for(int i=0; i<50; i++) {
+        read = readLine(wesPipe, error, '\0');
+
+        //TODO se la pipe è vuota, readLine dovrebbe restituire 0 o -1
+        if(read != 0) {
+            if(strcmp(error, "EMERGENZA") == 0) {
+                kill(pfcProcess[0], SIGINT);
+                kill(pfcProcess[1], SIGINT);
+                kill(pfcProcess[2], SIGINT);
+            } else {
+                pfcNumber = getErrorInfo(error);
+                pid = pfcProcess[pfcNumber - 1];
+
+                /*
+                 * kill(pidFiglio, 0) restituisce 0 se esiste un processo
+                 * con pid uguale a pidFiglio, altrimenti -1
+                 */
+                if(kill(pid, 0) == 0) {
+                    //il processo esiste
+                    char filename[25];
+                    char status[100];
+                    sprintf(filename, "/proc/%d/status", pid);
+                    FILE *fp = open_file(filename, "r");
+                    fscanf(fp, "%s", status);
+
+                    if(strcmp(status, "bloccato") == 0) {
+                        //il processo è bloccato
+                        kill(pid, SIGCONT);
+                        fprintf(switchLog, "PFC%d è stato sbloccato\n", pfcNumber);
+                    }
+                } else {
+                    //il processo non esiste più
+                    char filename[4];
+                    sprintf(filename, "pfc%d", pfcNumber);
+
+                    pfcProcess[pfcNumber - 1] = createChild(&execv, filename, pfcArgv[pfcNumber - 1]);
+                    fprintf(switchLog, "PFC%d è stato ricreato\n", pfcNumber);
+                }
+            }
+        }
+    }
+
+    close(wesPipe);
 
     return 0;
 }
@@ -51,5 +110,25 @@ void childHandler(int sig) { /* Executed if the child dies */
     printf ("Child %d terminated\n", childPid);
 
     exit(EXIT_SUCCESS);
+}
+
+int getErrorInfo(char *error) {
+    char *buffer[2];
+
+    for(int i=0; i<2; i++) {
+        buffer[i] = calloc(10, sizeof(char));
+    }
+
+    if(!tokenize(error, "-", 2, buffer)) {
+        return -1;
+    }
+
+    int counter = 9;
+    char *pfcInfo = buffer[1];
+    while(pfcInfo[counter] == '\0') {
+        counter--;
+    }
+
+    return pfcInfo[counter];
 }
 

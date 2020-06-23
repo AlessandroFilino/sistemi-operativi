@@ -3,6 +3,7 @@
 #include <unistd.h>
 #include <signal.h>
 #include <time.h>
+#include <math.h>
 #include "generatoreFallimenti.h"
 
 int main(int argc, const char * argv[]) {
@@ -20,18 +21,30 @@ int main(int argc, const char * argv[]) {
     unsigned char fallimenti = calcoloProb();
     
     if (fallimenti & 1){
+        /*
+         * SIGSTOP = sospensione da dentro un programma
+         */
         kill(pfcProcess[pfc], SIGSTOP);
     }
     
     if (fallimenti & 2){
+        /*
+         * SIGINT = quando l'utente digits ctrl-c
+         */
         kill(pfcProcess[pfc], SIGINT);
     }
     
     if (fallimenti & 4) {
+        /*
+         * SIGCONT = riprende l'esecuzione di un programma dopo la sospensione
+         */
         kill(pfcProcess[pfc], SIGCONT);
     }
     
     if (fallimenti & 8){
+        /*
+         * SIGUSR1 = segnale definito dall'utente
+         */
         kill(pfcProcess[pfc], SIGUSR1);
     }
  

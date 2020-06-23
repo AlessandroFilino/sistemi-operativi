@@ -1,5 +1,7 @@
 #include <stdlib.h>
 #include <unistd.h>
+#include <fcntl.h>
+#include <string.h>
 #include "utility.h"
 
 FILE *open_file(const char* filename, const char* mode) {
@@ -16,14 +18,14 @@ FILE *open_file(const char* filename, const char* mode) {
 }
 
 //TODO sistemare readline() usando realloc
-int readLine(int fd, char *buffer) {
+int readLine(int fd, char *buffer, char delimiter) {
     int n;
     int count = 0;
 
     do { /* Read characters until ’\0’ or end-of-input */
         n = read (fd, buffer, 1); /* Read one character */
-        count++;
-    } while (n > 0 && *buffer++ != '\0');
+        count += n;
+    } while (n > 0 && *buffer++ != delimiter);
 
     return count;
 }
@@ -45,6 +47,36 @@ int createChild(int (*execv_function)(const char*, char* const*), char *filename
     return pid;
 }
 
+int connectPipe(char *pipename, int mode) {
+    int fd;
+
+    do {
+        fd = open(pipename, mode);
+        if (fd == -1) {
+            printf("trying to connect...\n");
+            usleep((1 * 1000) * 400); //400 millisecondi
+        }
+    } while (fd == -1);
+    printf("connected!\n");
+
+    return fd;
+}
+
+int connectSocket(int clientFd, const struct sockaddr* serverSockAddrPtr, socklen_t serverLen) {
+    int result;
+
+    do {
+        result = connect(clientFd, serverSockAddrPtr, serverLen);
+        if (result == -1) {
+            printf("trying to connect...\n");
+            usleep((1 * 1000) * 400); //400 millisecondi
+        }
+    } while(result == -1);
+    printf("connected!\n");
+
+    return result;
+}
+
 int digits_number(int number) {
     int digits = 0;
 
@@ -54,6 +86,26 @@ int digits_number(int number) {
     } while (number != 0);
 
     return digits;
+}
+
+enum boolean tokenize(char *string, char *separator, int tokenNumber, char *buffer[]) {
+    char *token;
+    char *temp = string;
+
+    for(int i=0; i<tokenNumber; i++) {
+        token = strtok(temp, separator);
+        if(token == NULL){
+            return FALSE;
+        }
+
+        buffer[i] = token;
+
+        if(i == 0) {
+            temp = NULL;
+        }
+    }
+
+    return TRUE;
 }
 
 void intToString(char *buffer, int buffer_size, int number) {
