@@ -10,6 +10,7 @@ void changeSigusr(enum boolean *sigusr) {
     *sigusr = !(*sigusr);
 }
 
+//TODO changeSpeed() la tengo qui o in generatoreFallimenti?
 double changeSpeed(double speed) {
     return (double) (((int) round(speed)) << 2);
 }
@@ -78,9 +79,19 @@ int exe(int fd, FILE *fp, double *latitudine_prec, double *longitudine_prec, enu
     size_t lineLength = MAX_LINE_LENGTH + 1;
     char *line = malloc(sizeof(char) * lineLength);
     ssize_t read = readCorrectLine(line, lineLength, fp);
-
-    //int speedLength = MAX_SPEED_DIGITS + 1;
-    //char *message = malloc(sizeof(char) * speedLength);
+    /*
+     * TODO: scrittura su last_read usando
+     *       l'istruzione seguente per
+     *       trovare la posizione corrente
+     *       sul file g18.txt:
+     *          current_position = ftell(fp);
+     *       È possibile usare anche il valore
+     *       restituito da readCorrectLine e sommarlo
+     *       al valore presente su last_read.txt
+     *       per trovare la posizione corrente
+     *       relativamente alla quantità di bytes
+     *       già letti
+     */
 
     if(read != -1) {
         acquisisciCoordinate(line, &latitudine, &longitudine);
@@ -140,13 +151,4 @@ int exe(int fd, FILE *fp, double *latitudine_prec, double *longitudine_prec, enu
 
     return read;
 }
-
-/*long conversioneTempo(char* tempo){
-
-    int ore = atoi(&tempo[0])*10 + atoi(&tempo[1]);
-    int minuti = atoi(&tempo[2])*10 + atoi(&tempo[3]);
-    int secondi = atoi(&tempo[4])*10 + atoi(&tempo[5]);
-
-    return ore/3600 + minuti/60 + secondi;
-}*/
 

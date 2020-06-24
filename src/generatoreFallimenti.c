@@ -3,7 +3,6 @@
 #include <unistd.h>
 #include <signal.h>
 #include <time.h>
-#include <math.h>
 #include "generatoreFallimenti.h"
 
 int main(int argc, const char * argv[]) {
