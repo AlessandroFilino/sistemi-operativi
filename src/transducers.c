@@ -8,8 +8,8 @@
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <sys/un.h> /* For AF_UNIX sockets */
-#include "utility.h"
-#include "transducers.h"
+#include "../include/utility.h"
+#include "../include/transducers.h"
 
 int main(int argc, const char * argv[]) {
     int tempo = 0; //microsecondi trascorsi

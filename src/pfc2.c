@@ -5,8 +5,8 @@
 #include <fcntl.h>
 #include <sys/socket.h>
 #include <sys/un.h> /* For AF_UNIX sockets */
-#include "utility.h"
-#include "pfc.h"
+#include "../include/utility.h"
+#include "../include/pfc.h"
 
 enum boolean PFC2_sigusr;
 void sigusrHandler(int sig);
@@ -20,6 +20,9 @@ int main(int argc, const char * argv[]) {
     //TODO char *filename_g18 = argv[1];
     char *filename_g18 = "../sistemioperativi/doc/G18.txt";
     FILE *fp = open_file(filename_g18, "r");
+
+    char *filename_last_read = FILENAME_LAST_READ;
+    FILE *last_read = open_file(filename_last_read, "a+");
 
     //TODO unlink va rimosso
     unlink ("transducers_server");
@@ -48,7 +51,7 @@ int main(int argc, const char * argv[]) {
         //TODO usare sleep(1)
         usleep((1 * 1000) * 1000); //1000 millisecondi
 
-        read = exe(clientFd, fp, &latitudine_prec, &longitudine_prec, &PFC2_sigusr);
+        read = exe(clientFd, fp, last_read, &latitudine_prec, &longitudine_prec, &PFC2_sigusr);
     }
 
     fclose(fp);

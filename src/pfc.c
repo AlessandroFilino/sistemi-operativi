@@ -3,11 +3,15 @@
 #include <string.h>
 #include <math.h>
 #include <unistd.h>
-#include "pfc.h"
-#include "utility.h"
+#include "../include/pfc.h"
+#include "../include/utility.h"
 
 void changeSigusr(enum boolean *sigusr) {
     *sigusr = !(*sigusr);
+}
+
+int addLastRead(FILE *last_read, long position) {
+    return fprintf(last_read, "%ld\n", position);
 }
 
 //TODO changeSpeed() la tengo qui o in generatoreFallimenti?
@@ -70,7 +74,7 @@ double calcoloVelocita(double spazio, int tempo){
     return spazio/tempo;
 }
 
-int exe(int fd, FILE *fp, double *latitudine_prec, double *longitudine_prec, enum boolean *sigusr) {
+int exe(int fd, FILE *fp, FILE *last_read, double *latitudine_prec, double *longitudine_prec, enum boolean *sigusr) {
     double latitudine;
     double longitudine;
     double distance;
@@ -145,6 +149,7 @@ int exe(int fd, FILE *fp, double *latitudine_prec, double *longitudine_prec, enu
 
     *latitudine_prec = latitudine;
     *longitudine_prec = longitudine;
+    addLastRead(last_read, ftell(last_read));
 
     free(line);
     free(message);

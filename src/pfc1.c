@@ -3,8 +3,8 @@
 #include <unistd.h>
 #include <fcntl.h>
 #include <signal.h>
-#include "utility.h"
-#include "pfc.h"
+#include "../include/utility.h"
+#include "../include/pfc.h"
 
 enum boolean PFC1_sigusr;
 void sigusrHandler(int sig);
@@ -18,6 +18,10 @@ int main(int argc, const char * argv[]) {
     //TODO char *filename_g18 = argv[1];
     char *filename_g18 = "../sistemioperativi/doc/G18.txt";
     FILE *fp = open_file(filename_g18, "r");
+
+    char *filename_last_read = FILENAME_LAST_READ;
+    FILE *last_read = open_file(filename_last_read, "a+");
+    fseek(last_read, 0, SEEK_SET);
 
     //TODO unlink va rimosso
     unlink("pfc1Pipe");
@@ -34,7 +38,7 @@ int main(int argc, const char * argv[]) {
         //TODO usare sleep(1)
         usleep((1 * 1000) * 1000); //1000 millisecondi
 
-        read = exe(fd, fp, &latitudine_prec, &longitudine_prec, &PFC1_sigusr);
+        read = exe(fd, fp, last_read, &latitudine_prec, &longitudine_prec, &PFC1_sigusr);
     }
 
     fclose(fp);

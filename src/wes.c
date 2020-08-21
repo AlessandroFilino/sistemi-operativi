@@ -2,13 +2,13 @@
 #include <stdio.h>
 #include <unistd.h>
 #include <fcntl.h>
-#include "wes.h"
-#include "utility.h"
+#include "../include/wes.h"
+#include "../include/utility.h"
 
 int main(int argc, const char *argv[]) {
-    int speedPFC1Log = open("../sistemioperativi/log/speedPFC1.log", O_RDONLY);
-    int speedPFC2Log = open("../sistemioperativi/log/speedPFC2.log", O_RDONLY);
-    int speedPFC3Log = open("../sistemioperativi/log/speedPFC3.log", O_RDONLY);
+    int speedPFC1Log = open("../sistemioperativi/log/speedPFC1.log", O_RDONLY | O_CREAT);
+    int speedPFC2Log = open("../sistemioperativi/log/speedPFC2.log", O_RDONLY | O_CREAT);
+    int speedPFC3Log = open("../sistemioperativi/log/speedPFC3.log", O_RDONLY | O_CREAT);
     FILE *status = open_file("../sistemioperativi/log/status.log", "w+");
     int fd = connectPipe("wesPipe", O_WRONLY);
 

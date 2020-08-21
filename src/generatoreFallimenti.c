@@ -3,7 +3,7 @@
 #include <unistd.h>
 #include <signal.h>
 #include <time.h>
-#include "generatoreFallimenti.h"
+#include "../include/generatoreFallimenti.h"
 
 int main(int argc, const char * argv[]) {
     //TODO usare strtol invece che atoi

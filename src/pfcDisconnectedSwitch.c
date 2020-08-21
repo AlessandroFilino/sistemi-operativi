@@ -5,8 +5,8 @@
 #include <string.h>
 #include <signal.h>
 #include <sys/stat.h>
-#include "pfcDisconnectedSwitch.h"
-#include "utility.h"
+#include "../include/pfcDisconnectedSwitch.h"
+#include "../include/utility.h"
 
 int main(int argc, const char *argv[]) {
     //char *filename_g18 = argv[1];

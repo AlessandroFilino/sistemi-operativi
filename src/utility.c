@@ -2,7 +2,7 @@
 #include <unistd.h>
 #include <fcntl.h>
 #include <string.h>
-#include "utility.h"
+#include "../include/utility.h"
 
 FILE *open_file(const char* filename, const char* mode) {
     FILE *fp = fopen(filename, mode);
@@ -29,6 +29,8 @@ int readLine(int fd, char *buffer, char delimiter) {
 
     return count;
 }
+
+//TODO implementare scrittura con fprintf e dprintf
 
 int createChild(int (*execv_function)(const char*, char* const*), char *filename, char **argv) {
     int pid = fork();

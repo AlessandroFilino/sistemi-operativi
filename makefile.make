@@ -1,63 +1,73 @@
-all: main pfcDisconnectedSwitch generatoreFallimenti pfc1 pfc2 pfc3 transducer wes
+all: create-dir main pfcDisconnectedSwitch generatoreFallimenti pfc1 pfc2 pfc3 transducers wes clean-objects
+
+create-dir :
+	mkdir -p log temp bin
 
 main : main.o utility.o
-    gcc -o main main.o utility.h utility.o
+	gcc -o bin/main main.o utility.o
 
-main.o : main.c utility.h
-    gcc -c main.c
-
-
-pfcDisconnectedSwitch: pfcDisconnectedSwitch.o utility.o
-    gcc -o pfcDisconnectedSwitch pfcDisconnectedSwitch.o utility.o
-
-pfcDisconnectedSwitch.o: pfcDisconnectedSwitch.c pfcDisconnectedSwitch.h
-    gcc -c pfcDisconnectedSwitch.c
+main.o : src/main.c include/main.h include/utility.h
+	gcc -c src/main.c
 
 
-generatoreFallimenti: generatoreFallimenti.o
-    gcc -o generatoreFallimenti generatoreFallimenti.o
+pfcDisconnectedSwitch : pfcDisconnectedSwitch.o utility.o
+	gcc -o bin/pfcDisconnectedSwitch pfcDisconnectedSwitch.o utility.o
 
-generatoreFallimenti.o: generatoreFallimenti.c generatoreFallimenti.h
-    gcc -c generatoreFallimenti.c
-
-
-pfc1: pfc1.o pfc.o utility.o
-    gcc -o pfc1 pfc1.o pfc.o utility.o
-
-pfc1.o: pfc1.c pfc.h utility.h
-    gcc -c pfc1.c
-
-pfc2: pfc2.o pfc.o utility.o
-    gcc -o pfc2 pfc2.o pfc.o utility.o
-
-pfc2.o: pfc2.c pfc.h utility.h
-    gcc -c pfc2.c
-
-pfc3: pfc3.o pfc.o utility.o
-    gcc -o pfc3 pfc3.o pfc.o utility.o
-
-pfc3.o: pfc3.c pfc.h utility.h
-    gcc -c pfc3.c
-
-pfc.o: pfc.c pfc.h utility.h
-    gcc -c pfc.c
+pfcDisconnectedSwitch.o : src/pfcDisconnectedSwitch.c include/pfcDisconnectedSwitch.h
+	gcc -c src/pfcDisconnectedSwitch.c
 
 
-transducer: transducer.o utility.o
-    gcc -o transducer transducer.o utility.o
+generatoreFallimenti : generatoreFallimenti.o
+	gcc -o bin/generatoreFallimenti generatoreFallimenti.o
 
-transducer.o: transducer.c transducer.h
-    gcc -c transducer.c
+generatoreFallimenti.o : src/generatoreFallimenti.c include/generatoreFallimenti.h
+	gcc -c src/generatoreFallimenti.c
+
+
+pfc1 : pfc1.o pfc.o utility.o
+	gcc -o bin/pfc1 pfc1.o pfc.o utility.o
+
+pfc1.o : src/pfc1.c include/pfc.h include/utility.h
+	gcc -c src/pfc1.c
+
+pfc2 : pfc2.o pfc.o utility.o
+	gcc -o bin/pfc2 pfc2.o pfc.o utility.o
+
+pfc2.o : src/pfc2.c include/pfc.h include/utility.h
+	gcc -c src/pfc2.c
+
+pfc3 : pfc3.o pfc.o utility.o
+	gcc -o bin/pfc3 pfc3.o pfc.o utility.o
+
+pfc3.o : src/pfc3.c include/pfc.h include/utility.h
+	gcc -c src/pfc3.c
+
+pfc.o : src/pfc.c include/pfc.h include/utility.h
+	gcc -c src/pfc.c
+
+
+transducers : transducers.o utility.o
+	gcc -o bin/transducers transducers.o utility.o
+
+transducers.o : src/transducers.c include/transducers.h
+	gcc -c src/transducers.c
 
 
 wes: wes.o utility.o
-    gcc -o wes wes.o
+	gcc -o bin/wes wes.o utility.o
 
-wes.o: wes.c wes.h
-    gcc -c wes.c
+wes.o: src/wes.c include/wes.h
+	gcc -c src/wes.c
 
-utility.o : utility.c utility.h
-    gcc -c utility.c
+utility.o : src/utility.c include/utility.h
+	gcc -c src/utility.c
+
+
+clean : 
+	rm bin/*
+
+clean-objects : 
+	rm *.o
 
 
 
