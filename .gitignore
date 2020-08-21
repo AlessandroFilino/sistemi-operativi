@@ -8,3 +8,7 @@ cmake-build-debug
 
 #ignorare i file autogenerati da macOS
 .DS_Store
+
+#ignorare i file delle cartelle temp/ e log/
+log/
+temp/
