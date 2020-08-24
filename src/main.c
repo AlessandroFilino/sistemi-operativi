@@ -2,17 +2,23 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <fcntl.h>
+#include <string.h>
 #include "../include/utility.h"
 #include "../include/main.h"
-
-//TODO eliminare header main
 
 int main(int argc, const char* argv[]) {
     /*
      * argv[1] --> g18.txt
      */
 
-    char command1[100] = {0}; //86 caratteri utilizzati
+    /*
+     * TODO mettere path (in tutti i file.c):
+     *      char pathname[50] = {0};
+     *      strcpy(pathname, PATHNAME_LOG/PATHNAME_TEMP);
+     *      strcat(pathname, "filename");
+     */
+
+    /*char command1[100] = {0}; //86 caratteri utilizzati
     sprintf(command1, COMMAND_REMOVE_FILES, PATHNAME_TEMP, PATHNAME_TEMP);
 
     char command2[100] = {0}; //84 caratteri utilizzati
@@ -31,9 +37,25 @@ int main(int argc, const char* argv[]) {
         sprintf(error, "main: File %s not found\n", filename_G18);
         fprintf(stderr, "%s", error);
         exit(EXIT_FAILURE);
-    }
+    }*/
 
-    printf("%c", command2[84]);
+    char line[10] = {0};
+    int last_read = open("../sistemioperativi/temp/test.txt", O_CREAT | O_RDWR);
+    int position = lseek(last_read, 0, SEEK_CUR);
+    printf("%d", position);
+    readLine(last_read, line, '\n');
+    printf("\n%s", line);
+    memset(line, 0, 10);
+
+    readLine(last_read, line, '\n');
+    printf("%s", line);
+    memset(line, 0, 10);
+
+    readLine(last_read, line, '\n');
+    printf("%s", line);
+    memset(line, 0, 10);
+    //lseek(last_read, 0, SEEK_SET);
+
 
     /*char *pfcDisconnectedSwitch_argv[] = {"pfcDisconnectedSwitch", filename_G18, NULL};
     createChild(&execv, "pfcDisconnectedSwitch", pfcDisconnectedSwitch_argv);

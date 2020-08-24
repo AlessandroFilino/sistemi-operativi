@@ -10,8 +10,17 @@ void changeSigusr(enum boolean *sigusr) {
     *sigusr = !(*sigusr);
 }
 
-int addLastRead(FILE *last_read, long position) {
-    return fprintf(last_read, "%ld\n", position);
+//TODO convertire questa funzione in una generica scrittura sul file e inserirla in utility.c
+void addLastRead(int fd_last_read, long current_position) {
+    /* buffer_position è un buffer che contiene la posizione letta da last_read sottoforma di stringa */
+    char buffer_position[MAX_G18_FILE_LENGTH_DIGITS] = {0};
+
+    readLine(fd_last_read, buffer_position, EOF);
+    long last_read_position = strtol(buffer_position, NULL, 10);
+
+    if(current_position > last_read_position) {
+        dprintf(fd_last_read, "%ld", current_position);
+    }
 }
 
 //TODO changeSpeed() la tengo qui o in generatoreFallimenti?
@@ -74,7 +83,7 @@ double calcoloVelocita(double spazio, int tempo){
     return spazio/tempo;
 }
 
-int exe(int fd, FILE *fp, FILE *last_read, double *latitudine_prec, double *longitudine_prec, enum boolean *sigusr) {
+int exe(int fd_pfc_to_transducers, FILE *fp_g18, int last_read, double *latitudine_prec, double *longitudine_prec, enum boolean *sigusr) {
     double latitudine;
     double longitudine;
     double distance;
@@ -82,20 +91,7 @@ int exe(int fd, FILE *fp, FILE *last_read, double *latitudine_prec, double *long
 
     size_t lineLength = MAX_LINE_LENGTH + 1;
     char *line = malloc(sizeof(char) * lineLength);
-    ssize_t read = readCorrectLine(line, lineLength, fp);
-    /*
-     * TODO: scrittura su last_read usando
-     *       l'istruzione seguente per
-     *       trovare la posizione corrente
-     *       sul file g18.txt:
-     *          current_position = ftell(fp);
-     *       È possibile usare anche il valore
-     *       restituito da readCorrectLine e sommarlo
-     *       al valore presente su last_read.txt
-     *       per trovare la posizione corrente
-     *       relativamente alla quantità di bytes
-     *       già letti
-     */
+    ssize_t read = readCorrectLine(line, lineLength, fp_g18);
 
     if(read != -1) {
         acquisisciCoordinate(line, &latitudine, &longitudine);
@@ -138,18 +134,17 @@ int exe(int fd, FILE *fp, FILE *last_read, double *latitudine_prec, double *long
         return -1;
     }
 
-
     /*
      * TODO: sizeof(char) potrebbe essere eliminato in quanto
      *       la write scrive su un file leggendo da una stringa
      */
 
-    write(fd, message, sizeof(char) * (messageLength + 1));
+    write(fd_pfc_to_transducers, message, sizeof(char) * (messageLength + 1));
     printf("%s\n", message);
 
     *latitudine_prec = latitudine;
     *longitudine_prec = longitudine;
-    addLastRead(last_read, ftell(last_read));
+    addLastRead(last_read, ftell(fp_g18));
 
     free(line);
     free(message);

@@ -12,3 +12,4 @@ cmake-build-debug
 #ignorare i file delle cartelle temp/ e log/
 log/
 temp/
+bin/

@@ -3,7 +3,10 @@
 #include <unistd.h>
 #include <signal.h>
 #include <time.h>
+#include <string.h>
 #include "../include/generatoreFallimenti.h"
+#include "../include/utility.h"
+
 
 int main(int argc, const char * argv[]) {
     //TODO usare strtol invece che atoi
@@ -12,7 +15,11 @@ int main(int argc, const char * argv[]) {
 
     //int signals[4] = {SIGSTOP, SIGINT, SIGCONT, SIGUSR1};
     int pfcProcess[3] = {atoi(argv[1]), atoi(argv[2]), atoi(argv[3])};
-    FILE *failures = fopen("failures.log", "w");
+
+    char pathname_failures[50] = {0};
+    strcpy(pathname_failures, PATHNAME_LOG);
+    strcat(pathname_failures, "failures.log");
+    FILE *failures = fopen(pathname_failures, "w");
     
     sleep(1);
     
