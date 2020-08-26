@@ -6,8 +6,18 @@
 #include "../include/pfc.h"
 #include "../include/utility.h"
 
-void changeSigusr(enum boolean *sigusr) {
-    *sigusr = !(*sigusr);
+void setSignalStatus(int signalReceived, enum boolean *PFC_sigusr, enum boolean *PFC_sigstop) {
+    switch(signalReceived) {
+        case SIGUSR1: {
+            *PFC_sigusr = TRUE;
+            break;
+        }
+
+        case SIGSTOP: {
+            *PFC_sigstop = TRUE;
+            break;
+        }
+    }
 }
 
 //TODO convertire questa funzione in una generica scrittura sul file e inserirla in utility.c
@@ -21,6 +31,31 @@ void addLastRead(int fd_last_read, long current_position) {
     if(current_position > last_read_position) {
         dprintf(fd_last_read, "%ld", current_position);
     }
+}
+
+void changePointerPosition(FILE *fp_g18, int last_read) {
+    /* buffer_position è un buffer che contiene la posizione letta da last_read sottoforma di stringa */
+    char buffer_position[MAX_G18_FILE_LENGTH_DIGITS] = {0};
+    long position = 0;
+    int bytes = read(last_read, buffer_position, MAX_G18_FILE_LENGTH_DIGITS);
+
+    if(bytes != 0) {
+        position = strtol(buffer_position, NULL, 10);
+        fseek(fp_g18, position, SEEK_SET);
+    }
+}
+
+int setPreviousGeographicCoordinates(FILE *fp_g18, double *previousLatitude, double *previousLongitude) {
+    ssize_t read = 0;
+    size_t bufferLength = MAX_LINE_LENGTH + 1;
+    char *buffer = malloc(sizeof(char) * bufferLength);
+
+    read = readCorrectLine(buffer, bufferLength, fp_g18);
+    getGeographicCoordinates(buffer, previousLatitude, previousLongitude);
+
+    free(buffer);
+
+    return read;
 }
 
 //TODO changeSpeed() la tengo qui o in generatoreFallimenti?
@@ -46,7 +81,7 @@ ssize_t readCorrectLine(char *buffer, size_t bufferLength, FILE *fp) {
     return read;
 }
 
-void acquisisciCoordinate(char* line, double* latitudine, double* longitudine){
+void getGeographicCoordinates(char* line, double* latitude, double* longitude){
     char* tok;
     tok = strtok(line, ",");
 
@@ -55,58 +90,58 @@ void acquisisciCoordinate(char* line, double* latitudine, double* longitudine){
         exit (EXIT_FAILURE);
     }
 
-    *latitudine = atof(strtok(NULL, ","));
+    *latitude = atof(strtok(NULL, ","));
     strtok(NULL, ","); //direzioneLatitudine (da scartare)
-    *longitudine = atof(strtok(NULL, ","));
+    *longitude = atof(strtok(NULL, ","));
     strtok(NULL, ","); //direzioneLongitudine (da scartare)
 }
 
-double gradiToRadianti(double gradi) {
-    return gradi * M_PI / 180;
+double degreeToRadian(double degree) {
+    return degree * M_PI / 180;
 }
 
-double calcoloDistanza(double latitudine, double longitudine, double latitudine_prec, double longitudine_prec){
-    double dLat = gradiToRadianti(latitudine - latitudine_prec);
-    double dLon = gradiToRadianti(longitudine - longitudine_prec);
-    latitudine = gradiToRadianti(latitudine);
-    latitudine_prec = gradiToRadianti(latitudine_prec);
+double getDistance(double latitude, double longitude, double previousLatitude, double previousLongitude){
+    double dLat = degreeToRadian(latitude - previousLatitude);
+    double dLon = degreeToRadian(longitude - previousLongitude);
+    latitude = degreeToRadian(latitude);
+    previousLatitude = degreeToRadian(previousLatitude);
 
     double a = sin(dLat/2) * sin(dLat/2) +
-               sin(dLon/2) * sin(dLon/2) * cos(latitudine_prec) * cos(latitudine);
+               sin(dLon/2) * sin(dLon/2) * cos(previousLatitude) * cos(latitude);
     double c = 2 * atan2(sqrt(a), sqrt(1-a));
 
     return RAGGIO_TERRA_METRI * c;
 }
 
-double calcoloVelocita(double spazio, int tempo){
-    /* Spazio in metri, tempo in secondi m/s */
-    return spazio/tempo;
+double getVelocity(double space, int time){
+    /* Spazio in metri, time in secondi m/s */
+    return space / time;
 }
 
-int exe(int fd_pfc_to_transducers, FILE *fp_g18, int last_read, double *latitudine_prec, double *longitudine_prec, enum boolean *sigusr) {
-    double latitudine;
-    double longitudine;
+int exe(int fd_pfcToTransducers, FILE *fp_g18, int last_read, double *previousLatitude, double *previousLongitude, enum boolean *sigusr, enum boolean *sigstop) {
+    double latitude;
+    double longitude;
     double distance;
-    double speed;
+    double velocity;
 
     size_t lineLength = MAX_LINE_LENGTH + 1;
     char *line = malloc(sizeof(char) * lineLength);
     ssize_t read = readCorrectLine(line, lineLength, fp_g18);
 
-    if(read != -1) {
-        acquisisciCoordinate(line, &latitudine, &longitudine);
-        distance = calcoloDistanza(latitudine, longitudine, *latitudine_prec, *longitudine_prec);
-        speed = calcoloVelocita(distance, TEMPO);
+    if (read != -1) {
+        getGeographicCoordinates(line, &latitude, &longitude);
+        distance = getDistance(latitude, longitude, *previousLatitude, *previousLongitude);
+        velocity = getVelocity(distance, TEMPO);
 
-        if(*sigusr == TRUE) {
-            speed = changeSpeed(speed);
-            changeSigusr(sigusr);
+        if (*sigusr == TRUE) {
+            velocity = changeSpeed(velocity);
+            *sigusr = FALSE;
         }
     } else {
-        speed = -1;
+        velocity = -1;
     }
 
-    int int_section = (int) speed;
+    int int_section = (int) velocity;
     int digits = digits_number(int_section);
 
     /*
@@ -123,14 +158,14 @@ int exe(int fd_pfc_to_transducers, FILE *fp_g18, int last_read, double *latitudi
      * lo spazio per contenere il carattere
      * del segno
      */
-    if(speed < 0) {
+    if (velocity < 0) {
         messageLength++;
     }
 
     char *message = malloc(sizeof(char) * (messageLength + 1)); //+1 per il carattere di fine stringa
-    int result = snprintf(message, sizeof(char) * (messageLength + 1), "%.2f", speed);
+    int result = snprintf(message, sizeof(char) * (messageLength + 1), "%.2f", velocity);
 
-    if(result < 0) {
+    if (result < 0) {
         return -1;
     }
 
@@ -139,12 +174,18 @@ int exe(int fd_pfc_to_transducers, FILE *fp_g18, int last_read, double *latitudi
      *       la write scrive su un file leggendo da una stringa
      */
 
-    write(fd_pfc_to_transducers, message, sizeof(char) * (messageLength + 1));
+    write(fd_pfcToTransducers, message, sizeof(char) * (messageLength + 1));
     printf("%s\n", message);
 
-    *latitudine_prec = latitudine;
-    *longitudine_prec = longitudine;
-    addLastRead(last_read, ftell(fp_g18));
+    if(*sigstop) {
+        changePointerPosition(fp_g18, last_read);
+        setPreviousGeographicCoordinates(fp_g18, previousLatitude, previousLongitude);
+        *sigstop = FALSE;
+    } else {
+        *previousLatitude = latitude;
+        *previousLongitude = longitude;
+        addLastRead(last_read, ftell(fp_g18));
+    }
 
     free(line);
     free(message);

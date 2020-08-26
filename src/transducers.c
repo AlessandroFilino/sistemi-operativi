@@ -10,6 +10,7 @@
 #include <sys/un.h> /* For AF_UNIX sockets */
 #include "../include/utility.h"
 #include "../include/transducers.h"
+#include "../include/path.h"
 
 int main(int argc, const char * argv[]) {
     int tempo = 0; //microsecondi trascorsi
@@ -17,11 +18,11 @@ int main(int argc, const char * argv[]) {
 
     //pfc1
     char *velocita_pfc1 = calloc(10, sizeof(char));
-    unlink("pfc1Pipe");
-    mknod("pfc1Pipe", S_IFIFO, 0);
-    chmod("pfc1Pipe", 0660);
-    int fd_PFC1 = open("pfc1Pipe", O_RDONLY | O_NONBLOCK);
-    FILE *speedPFC1Log = open_file("../sistemioperativi/log/speedPFC1.log", "w");
+    unlink(FILENAME_PFC1_PIPE);
+    mknod(FILENAME_PFC1_PIPE, S_IFIFO, 0);
+    chmod(FILENAME_PFC1_PIPE, 0660);
+    int fd_PFC1 = open(FILENAME_PFC1_PIPE, O_RDONLY | O_NONBLOCK);
+    FILE *speedPFC1Log = open_file(FILENAME_SPEEDPFC1_LOG, "w");
 
     //pfc2
     int serverFd, clientFd, serverLen, result;
@@ -41,8 +42,8 @@ int main(int argc, const char * argv[]) {
 
     serverFd = socket (AF_UNIX, SOCK_STREAM, DEFAULT_PROTOCOL);
     serverUNIXAddress.sun_family = AF_UNIX; // Set domain type
-    strcpy (serverUNIXAddress.sun_path, "transducers_server"); // Set name
-    unlink ("transducers_server"); // Remove file if it already exists
+    strcpy (serverUNIXAddress.sun_path, FILENAME_PFC2_SOCKET); // Set name
+    unlink (FILENAME_PFC2_SOCKET); // Remove file if it already exists
     bind (serverFd, serverSockAddrPtr, serverLen);// Create file
     listen (serverFd, 1); // Maximum pending connection length
     clientFd = accept(serverFd, clientSockAddrPtr, &clientLen);
@@ -57,12 +58,12 @@ int main(int argc, const char * argv[]) {
         exit(EXIT_FAILURE);
     }
 
-    FILE *speedPFC2Log = open_file("../sistemioperativi/log/speedPFC2.log", "w");
+    FILE *speedPFC2Log = open_file(FILENAME_SPEEDPFC2_LOG, "w");
     char* velocita_pfc2 = calloc(10, sizeof(char));
 
     //pfc3
-    FILE *speedPFC3Log = open_file("../sistemioperativi/log/speedPFC3.log", "w");
-    int fd_PFC3 = open("pfcTransducers.txt", O_RDONLY);
+    FILE *speedPFC3Log = open_file(FILENAME_SPEEDPFC3_LOG, "w");
+    int fd_PFC3 = open(FILENAME_PFC3_FILE, O_RDONLY);
     char *velocita_pfc3 = calloc(10, sizeof(char));
 
     /*usleep(1000);

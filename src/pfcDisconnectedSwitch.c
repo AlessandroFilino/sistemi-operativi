@@ -7,6 +7,7 @@
 #include <sys/stat.h>
 #include "../include/pfcDisconnectedSwitch.h"
 #include "../include/utility.h"
+#include "../include/path.h"
 
 int main(int argc, const char *argv[]) {
     //char *filename_g18 = argv[1];
@@ -19,12 +20,13 @@ int main(int argc, const char *argv[]) {
 
     int read;
     char *error = calloc(14 + 1, sizeof(char));
-    unlink("wesPipe");
-    mknod("wesPipe", S_IFIFO, 0);
-    chmod("wesPipe", 0660);
+    unlink(FILENAME_WES_PIPE);
+    mknod(FILENAME_WES_PIPE, S_IFIFO, 0);
+    chmod(FILENAME_WES_PIPE, 0660);
+
     //TODO pipe bloccante?
-    int wesPipe = open("wesPipe", O_RDONLY | O_NONBLOCK);
-    FILE *switchLog = open_file("../sistemioperativi/log/switch.log", "w");
+    int wesPipe = open(FILENAME_WES_PIPE, O_RDONLY | O_NONBLOCK);
+    FILE *switchLog = open_file(FILENAME_SWITCH_LOG, "w");
 
     /*
      * TODO: signal(SIGCHLD, SIG_IGN); (ignore death-of-child signals to prevent zombies)
@@ -74,19 +76,12 @@ int main(int argc, const char *argv[]) {
                  */
                 if(kill(pid, 0) == 0) {
                     //il processo esiste
-                    char filename[25];
-                    char status[100];
-                    sprintf(filename, "/proc/%d/status", pid);
-                    FILE *fp = open_file(filename, "r");
-                    fscanf(fp, "%s", status);
 
-                    if(strcmp(status, "bloccato") == 0) {
-                        //il processo è bloccato
-                        kill(pid, SIGCONT);
-                        fprintf(switchLog, "PFC%d è stato sbloccato\n", pfcNumber);
-                    }
+                    kill(pid, SIGCONT);
+                    fprintf(switchLog, "Iniviato un segnale SIGCONT a PFC%d\n", pfcNumber);
                 } else {
                     //il processo non esiste più
+
                     char filename[4];
                     sprintf(filename, "pfc%d", pfcNumber);
 

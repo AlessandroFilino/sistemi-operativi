@@ -4,13 +4,14 @@
 #include <fcntl.h>
 #include "../include/wes.h"
 #include "../include/utility.h"
+#include "../include/path.h"
 
 int main(int argc, const char *argv[]) {
-    int speedPFC1Log = open("../sistemioperativi/log/speedPFC1.log", O_RDONLY | O_CREAT);
-    int speedPFC2Log = open("../sistemioperativi/log/speedPFC2.log", O_RDONLY | O_CREAT);
-    int speedPFC3Log = open("../sistemioperativi/log/speedPFC3.log", O_RDONLY | O_CREAT);
-    FILE *status = open_file("../sistemioperativi/log/status.log", "w+");
-    int fd = connectPipe("wesPipe", O_WRONLY);
+    int speedPFC1Log = open(FILENAME_SPEEDPFC1_LOG, O_RDONLY | O_CREAT);
+    int speedPFC2Log = open(FILENAME_SPEEDPFC2_LOG, O_RDONLY | O_CREAT);
+    int speedPFC3Log = open(FILENAME_SPEEDPFC3_LOG, O_RDONLY | O_CREAT);
+    FILE *status = open_file(FILENAME_STATUS_LOG, "w+");
+    int fd = connectPipe(FILENAME_WES_PIPE, O_WRONLY);
 
     double velocita_pfc1;
     double velocita_pfc2;

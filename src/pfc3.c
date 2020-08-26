@@ -1,45 +1,42 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
-#include <string.h>
+#include <fcntl.h>
 #include "../include/utility.h"
 #include "../include/pfc.h"
 #include "../include/path.h"
 
 enum boolean PFC3_sigusr;
-void sigusrHandler(int sig);
+enum boolean PFC3_sigstop;
+void signalHandler(int signal);
 
 int main(int argc, const char * argv[]) {
-    double latitudine_prec = 0;
-    double longitudine_prec = 0;
+    int last_read;
+    ssize_t read = 0;
+    int fd_fpTransducers;
+    double previousLatitude = 0;
+    double previousLongitude = 0;
 
-    signal(SIGUSR1, &sigusrHandler);
+    signal(SIGUSR1, &signalHandler);
+    signal(SIGCONT, &signalHandler);
 
     //TODO char *filename_g18 = argv[1];
     char *filename_g18 = "../sistemioperativi/doc/G18.txt";
     FILE *fp_g18 = open_file(filename_g18, "r");
 
-    char *filename_last_read = FILENAME_LAST_READ;
-    FILE *last_read = open_file(filename_last_read, "a+");
+    last_read = open(FILENAME_LAST_READ, O_CREAT | O_RDWR);
+    changePointerPosition(fp_g18, last_read);
 
-    char pathname_pfcTransducers[50] = {0};
-    strcpy(pathname_pfcTransducers, PATHNAME_TEMP);
-    strcat(pathname_pfcTransducers, "pfcTransducers.txt");
-    FILE *fpTransducers = open_file(pathname_pfcTransducers, "w");
-    int fd = fileno(fpTransducers);
+    FILE *fpTransducers = open_file(FILENAME_PFC3_FILE, "w");
+    fd_fpTransducers = fileno(fpTransducers);
 
-    ssize_t read = 0;
-    size_t bufferLength = MAX_LINE_LENGTH + 1;
-    char *buffer = malloc(sizeof(char) * bufferLength);
-    read = readCorrectLine(buffer, bufferLength, fp_g18);
-    acquisisciCoordinate(buffer, &latitudine_prec, &longitudine_prec);
-    free(buffer);
+    read = setPreviousGeographicCoordinates(fp_g18, &previousLatitude, &previousLongitude);
 
     while(read != -1) {
         //TODO usare sleep(1)
         usleep((1 * 1000) * 1000); //1000 millisecondi
 
-        read = exe(fd, fp_g18, last_read, &latitudine_prec, &longitudine_prec, &PFC3_sigusr);
+        read = exe(fd_fpTransducers, fp_g18, last_read, &previousLatitude, &previousLongitude, &PFC3_sigusr, &PFC3_sigstop);
         fflush(fpTransducers);
     }
 
@@ -47,6 +44,6 @@ int main(int argc, const char * argv[]) {
     fclose(fpTransducers);
 }
 
-void sigusrHandler(int sig) {
-    changeSigusr(&PFC3_sigusr);
+void signalHandler(int signal) {
+    setSignalStatus(signal, &PFC3_sigusr, &PFC3_sigstop);
 }
