@@ -11,7 +11,7 @@
 
 #include "utility.h"
 
-void setSignalStatus(int signalReceived, enum boolean *PFC_sigusr, enum boolean *PFC_sigstop);
+void setSignalStatus(int signalReceived, enum boolean *PFC_sigUsr, enum boolean *PFC_sigRestart);
 void addLastRead(int fd_last_read, long current_position);
 void changePointerPosition(FILE *fp_g18, int last_read);
 int setPreviousGeographicCoordinates(FILE *fp_g18, double *previousLatitude, double *previousLongitude);
@@ -23,6 +23,6 @@ double getDistance(double latitude, double longitude, double previousLatitude, d
 double degreeToRadian(double degree);
 double getVelocity(double space, int time);
 
-int exe(int fd_pfcToTransducers, FILE *fp_g18, int last_read, double *previousLatitude, double *previousLongitude, enum boolean *sigusr, enum boolean *sigstop);
+int exe(int fd_pfcToTransducers, FILE *fp_g18, int last_read, double *previousLatitude, double *previousLongitude, enum boolean *sigUsr, enum boolean *sigRestart);
 
 #endif

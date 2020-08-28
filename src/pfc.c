@@ -6,15 +6,17 @@
 #include "../include/pfc.h"
 #include "../include/utility.h"
 
-void setSignalStatus(int signalReceived, enum boolean *PFC_sigusr, enum boolean *PFC_sigstop) {
+void setSignalStatus(int signalReceived, enum boolean *PFC_sigUsr, enum boolean *PFC_sigRestart) {
     switch(signalReceived) {
         case SIGUSR1: {
-            *PFC_sigusr = TRUE;
+            *PFC_sigUsr = TRUE;
             break;
         }
 
+        case SIGUSR2:
+
         case SIGSTOP: {
-            *PFC_sigstop = TRUE;
+            *PFC_sigRestart = TRUE;
             break;
         }
     }
@@ -26,6 +28,7 @@ void addLastRead(int fd_last_read, long current_position) {
     char buffer_position[MAX_G18_FILE_LENGTH_DIGITS] = {0};
 
     readLine(fd_last_read, buffer_position, EOF);
+    //TODO al posto di strtol usare
     long last_read_position = strtol(buffer_position, NULL, 10);
 
     if(current_position > last_read_position) {
@@ -118,7 +121,7 @@ double getVelocity(double space, int time){
     return space / time;
 }
 
-int exe(int fd_pfcToTransducers, FILE *fp_g18, int last_read, double *previousLatitude, double *previousLongitude, enum boolean *sigusr, enum boolean *sigstop) {
+int exe(int fd_pfcToTransducers, FILE *fp_g18, int last_read, double *previousLatitude, double *previousLongitude, enum boolean *sigUsr, enum boolean *sigRestart) {
     double latitude;
     double longitude;
     double distance;
@@ -133,9 +136,9 @@ int exe(int fd_pfcToTransducers, FILE *fp_g18, int last_read, double *previousLa
         distance = getDistance(latitude, longitude, *previousLatitude, *previousLongitude);
         velocity = getVelocity(distance, TEMPO);
 
-        if (*sigusr == TRUE) {
+        if (*sigUsr == TRUE) {
             velocity = changeSpeed(velocity);
-            *sigusr = FALSE;
+            *sigUsr = FALSE;
         }
     } else {
         velocity = -1;
@@ -177,10 +180,10 @@ int exe(int fd_pfcToTransducers, FILE *fp_g18, int last_read, double *previousLa
     write(fd_pfcToTransducers, message, sizeof(char) * (messageLength + 1));
     printf("%s\n", message);
 
-    if(*sigstop) {
+    if(*sigRestart) {
         changePointerPosition(fp_g18, last_read);
         setPreviousGeographicCoordinates(fp_g18, previousLatitude, previousLongitude);
-        *sigstop = FALSE;
+        *sigRestart = FALSE;
     } else {
         *previousLatitude = latitude;
         *previousLongitude = longitude;

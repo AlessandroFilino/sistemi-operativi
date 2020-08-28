@@ -18,7 +18,7 @@ int main(int argc, const char * argv[]) {
     double previousLongitude = 0;
 
     signal(SIGUSR1, &signalHandler);
-    signal(SIGCONT, &signalHandler);
+    signal(SIGSTOP, &signalHandler);
 
     //TODO char *filename_g18 = argv[1];
     char *filename_g18 = "../sistemioperativi/doc/G18.txt";

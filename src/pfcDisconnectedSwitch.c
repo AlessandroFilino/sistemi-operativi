@@ -8,18 +8,20 @@
 #include "../include/pfcDisconnectedSwitch.h"
 #include "../include/utility.h"
 #include "../include/path.h"
+#include "../include/errors.h"
 
 int main(int argc, const char *argv[]) {
     //char *filename_g18 = argv[1];
     char *filename_g18 = "../sistemioperativi/doc/G18.txt";
 
-    int pid;
+    int pid_pfc;
     int pfcNumber;
     int pfcProcess[3];
     int generatoreFallimentiProcess;
 
     int read;
-    char *error = calloc(14 + 1, sizeof(char));
+    char error[WES_MESSAGE_MAX_LENGTH] = {0};
+
     unlink(FILENAME_WES_PIPE);
     mknod(FILENAME_WES_PIPE, S_IFIFO, 0);
     chmod(FILENAME_WES_PIPE, 0660);
@@ -36,13 +38,13 @@ int main(int argc, const char *argv[]) {
      */
     signal (SIGCHLD, childHandler);
 
-    char *PFC1_argv[] = {"pfc1", filename_g18};
+    char *PFC1_argv[] = {"pfc1", filename_g18, NULL};
     pfcProcess[0] = createChild(&execv, "pfc1", PFC1_argv);
 
-    char *PFC2_argv[] = {"pfc2", filename_g18};
+    char *PFC2_argv[] = {"pfc2", filename_g18, NULL};
     pfcProcess[1] = createChild(&execv, "pfc2", PFC2_argv);
 
-    char *PFC3_argv[] = {"pfc3", filename_g18};
+    char *PFC3_argv[] = {"pfc3", filename_g18, NULL};
     pfcProcess[2] = createChild(&execv, "pfc3", PFC3_argv);
 
     char *pfc1Process = malloc(sizeof(char) * 10);
@@ -60,25 +62,31 @@ int main(int argc, const char *argv[]) {
     for(int i=0; i<50; i++) {
         read = readLine(wesPipe, error, '\0');
 
-        //TODO se la pipe è vuota, readLine dovrebbe restituire 0 o -1
-        if(read != 0) {
-            if(strcmp(error, "EMERGENZA") == 0) {
-                kill(pfcProcess[0], SIGINT);
-                kill(pfcProcess[1], SIGINT);
-                kill(pfcProcess[2], SIGINT);
+        /*
+         * se la pipe è vuota, readLine restituisce 0
+         * se avviene un errore durante la lettura, readLine restituisce -1
+         */
+        if(read > 0) {
+            if(strcmp(error, WES_MESSAGE_EMERGENCY) == 0) {
+                kill(pfcProcess[0], SIGUSR2);
+                kill(pfcProcess[1], SIGUSR2);
+                kill(pfcProcess[2], SIGUSR2);
+
+                fprintf(switchLog, "SIGUSR2 sent to PFC1, PFC2, PFC3\n");
             } else {
                 pfcNumber = getErrorInfo(error);
-                pid = pfcProcess[pfcNumber - 1];
+                pid_pfc = pfcProcess[pfcNumber - 1];
 
                 /*
                  * kill(pidFiglio, 0) restituisce 0 se esiste un processo
-                 * con pid uguale a pidFiglio, altrimenti -1
+                 * con pid_pfc uguale a pidFiglio, altrimenti -1
                  */
-                if(kill(pid, 0) == 0) {
+                if(kill(pid_pfc, 0) == 0) {
                     //il processo esiste
 
-                    kill(pid, SIGCONT);
-                    fprintf(switchLog, "Iniviato un segnale SIGCONT a PFC%d\n", pfcNumber);
+                    //TODO controllare se il processo è bloccato oppure no
+                    kill(pid_pfc, SIGCONT);
+                    fprintf(switchLog, "SIGCONT sent to PFC%d\n", pfcNumber);
                 } else {
                     //il processo non esiste più
 
@@ -108,22 +116,47 @@ void childHandler(int sig) { /* Executed if the child dies */
 }
 
 int getErrorInfo(char *error) {
-    char *buffer[2];
+    unsigned int size = (unsigned int) strlen(error);
 
-    for(int i=0; i<2; i++) {
-        buffer[i] = calloc(10, sizeof(char));
+    int result = 0;
+    char *endPointer = &error[size-1];
+
+    while(*endPointer >= '0' && *endPointer <= '9') {
+        result = result * 10 + (*endPointer - '0');
+        endPointer--;
     }
 
-    if(!tokenize(error, "-", 2, buffer)) {
-        return -1;
-    }
-
-    int counter = 9;
-    char *pfcInfo = buffer[1];
-    while(pfcInfo[counter] == '\0') {
-        counter--;
-    }
-
-    return pfcInfo[counter];
+    return result;
 }
+
+/*
+ * Con waitpid() e WIFSTOPPED() è possibile controllare lo stato di un processo
+ *
+    pid_t pid = fork();
+    if(pid == 0) {
+        printf("child\n");
+        fflush(stdout);
+        usleep((1 * 1000) * 1000 * 3);
+        printf("exit");
+        exit(EXIT_SUCCESS);
+    } else {
+        usleep((1 * 1000) * 2000);
+        kill(pid, SIGSTOP);
+        int test_status;
+        int result = waitpid(pid, &test_status, WNOHANG | WUNTRACED);
+
+        if(result > 0) {
+            printf("ok\n");
+            fflush(stdout);
+        }
+
+        printf("status: %d\n", WIFSTOPPED(test_status));
+        fflush(stdout);
+
+        usleep((1 * 1000) * 3000);
+        kill(pid, SIGCONT);
+    }
+
+    wait(NULL);
+ */
 

@@ -3,23 +3,19 @@
 #include <unistd.h>
 #include <fcntl.h>
 #include <string.h>
+#include <signal.h>
 #include "../include/utility.h"
 #include "../include/main.h"
 #include "../include/path.h"
+#include "../include/errors.h"
 
 int main(int argc, const char* argv[]) {
     /*
      * argv[1] --> g18.txt
      */
 
-    char command1[100] = {0}; //86 caratteri utilizzati
-    sprintf(command1, COMMAND_REMOVE_FILES, PATHNAME_TEMP, PATHNAME_TEMP);
-
-    char command2[100] = {0}; //84 caratteri utilizzati
-    sprintf(command2, COMMAND_REMOVE_FILES, PATHNAME_LOG, PATHNAME_LOG);
-
-    if(system(command1) || system(command2) != 0) {
-        fprintf(stderr, "%s", "main: path error\n");
+    if(system(COMMAND_REMOVE_FILES_TEMP_DIR) || system(COMMAND_REMOVE_FILES_LOG_DIR) != 0) {
+        fprintf(stderr, "%s", MAIN_PATH_ERROR_MESSAGE);
         exit(EXIT_FAILURE);
     }
 
@@ -27,11 +23,10 @@ int main(int argc, const char* argv[]) {
     char *filename_G18 = "../doc/G18.txt";
 
     if(access(filename_G18, F_OK) == -1) {
-        char error[50];
-        sprintf(error, "main: File %s not found\n", filename_G18);
-        fprintf(stderr, "%s", error);
+        fprintf(stderr, "%s", MAIN_INPUT_FNF_MESSAGE);
         exit(EXIT_FAILURE);
     }
+
 
     /*char *pfcDisconnectedSwitch_argv[] = {"pfcDisconnectedSwitch", filename_G18, NULL};
     createChild(&execv, "pfcDisconnectedSwitch", pfcDisconnectedSwitch_argv);

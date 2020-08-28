@@ -5,6 +5,17 @@
 #include <sys/socket.h>
 #include <sys/un.h>
 
+/*
+ * #define ARRAY_LENGTH(array) (sizeof(array)/sizeof(array[0]))
+ *
+ * ARRAY_LENGTH considera anche il carattere di fine stringa
+ * perciò dobbiamo sottrarre 1 per il calcolo della lunghezza
+ * effettiva
+ * #define STRLEN(s)           (ARRAY_LENGTH(s)-1)
+ */
+
+#define CONCAT(dest, s)     dest s
+
 enum boolean {FALSE, TRUE};
 
 FILE *open_file(const char* filename, const char* mode);

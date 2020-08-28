@@ -2,6 +2,8 @@
 #include <stdio.h>
 #include <unistd.h>
 #include <fcntl.h>
+#include <string.h>
+#include "../include/errors.h"
 #include "../include/wes.h"
 #include "../include/utility.h"
 #include "../include/path.h"
@@ -31,26 +33,26 @@ int main(int argc, const char *argv[]) {
 
         if(velocita_pfc1 == velocita_pfc2) {
             if(velocita_pfc1 == velocita_pfc3) {
-                printf("OK\n");
-                fwrite("OK\n", sizeof(char), 3, status);
+                printf(CONCAT(WES_MESSAGE_SUCCESS, "\n"));
+                fwrite(CONCAT(WES_MESSAGE_SUCCESS, "\n"), sizeof(char), strlen(WES_MESSAGE_SUCCESS)+1, status);
             } else {
-                printf("ERRORE-PFC3\n");
-                fwrite("ERRORE-PFC3\n", sizeof(char), 12, status);
-                write(fd, "ERRORE-PFC3\0", sizeof(char) * 12);
+                printf(CONCAT(WES_MESSAGE_PFC3_ERROR, "\n"));
+                fwrite(CONCAT(WES_MESSAGE_PFC3_ERROR, "\n"), sizeof(char), strlen(WES_MESSAGE_PFC3_ERROR)+1, status);
+                write(fd, WES_MESSAGE_PFC3_ERROR, sizeof(char) * strlen(WES_MESSAGE_PFC3_ERROR));
             }
         } else {
             if(velocita_pfc1 == velocita_pfc3) {
-                printf("ERRORE-PFC2\n");
-                fwrite("ERRORE-PFC2\n", sizeof(char), 12, status);
-                write(fd, "ERRORE-PFC2\0", sizeof(char) * 12);
+                printf(CONCAT(WES_MESSAGE_PFC2_ERROR, "\n"));
+                fwrite(CONCAT(WES_MESSAGE_PFC2_ERROR, "\n"), sizeof(char), strlen(WES_MESSAGE_PFC2_ERROR)+1, status);
+                write(fd, WES_MESSAGE_PFC2_ERROR, sizeof(char) * strlen(WES_MESSAGE_PFC2_ERROR));
             } else if(velocita_pfc2 == velocita_pfc3) {
-                printf("ERRORE-PFC1\n");
-                fwrite("ERRORE-PFC1\n", sizeof(char), 12, status);
-                write(fd, "ERRORE-PFC1\0", sizeof(char) * 12);
+                printf(CONCAT(WES_MESSAGE_PFC1_ERROR, "\n"));
+                fwrite(CONCAT(WES_MESSAGE_PFC1_ERROR, "\n"), sizeof(char), strlen(WES_MESSAGE_PFC1_ERROR)+1, status);
+                write(fd, WES_MESSAGE_PFC1_ERROR, sizeof(char) * strlen(WES_MESSAGE_PFC1_ERROR));
             } else {
-                printf("EMERGENZA\n");
-                fwrite("EMERGENZA\n", sizeof(char), 10, status);
-                write(fd, "EMERGENZA\0", sizeof(char) * 10);
+                printf(CONCAT(WES_MESSAGE_EMERGENCY, "\n"));
+                fwrite(CONCAT(WES_MESSAGE_EMERGENCY, "\n"), sizeof(char), strlen(WES_MESSAGE_EMERGENCY) + 1, status);
+                write(fd, WES_MESSAGE_EMERGENCY, sizeof(char) * strlen(WES_MESSAGE_EMERGENCY));
             }
         }
     }

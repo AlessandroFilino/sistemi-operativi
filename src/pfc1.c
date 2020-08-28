@@ -6,8 +6,8 @@
 #include "../include/pfc.h"
 #include "../include/path.h"
 
-enum boolean PFC1_sigusr;
-enum boolean PFC1_sigstop;
+enum boolean PFC1_sigUsr;
+enum boolean PFC1_sigRestart;
 void signalHandler(int signal);
 
 int main(int argc, const char * argv[]) {
@@ -18,7 +18,7 @@ int main(int argc, const char * argv[]) {
     double previousLongitude = 0;
 
     signal(SIGUSR1, &signalHandler);
-    signal(SIGCONT, &signalHandler);
+    signal(SIGSTOP, &signalHandler);
 
     //TODO char *filename_g18 = argv[1];
     char *filename_g18 = "../doc/G18.txt";
@@ -37,7 +37,7 @@ int main(int argc, const char * argv[]) {
         //TODO usare sleep(1)
         usleep((1 * 1000) * 1000); //1000 millisecondi
 
-        read = exe(fd_pipe, fp_g18, last_read, &previousLatitude, &previousLongitude, &PFC1_sigusr, &PFC1_sigstop);
+        read = exe(fd_pipe, fp_g18, last_read, &previousLatitude, &previousLongitude, &PFC1_sigUsr, &PFC1_sigRestart);
     }
 
     fclose(fp_g18);
@@ -47,7 +47,7 @@ int main(int argc, const char * argv[]) {
 }
 
 void signalHandler(int signal) {
-    setSignalStatus(signal, &PFC1_sigusr, &PFC1_sigstop);
+    setSignalStatus(signal, &PFC1_sigUsr, &PFC1_sigRestart);
 }
 
 
