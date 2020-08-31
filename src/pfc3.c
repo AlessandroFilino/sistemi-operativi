@@ -2,9 +2,11 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <fcntl.h>
+#include <string.h>
 #include "../include/utility.h"
 #include "../include/pfc.h"
 #include "../include/path.h"
+#include "../include/messages.h"
 
 enum boolean PFC3_sigusr;
 enum boolean PFC3_sigstop;
@@ -40,8 +42,12 @@ int main(int argc, const char * argv[]) {
         fflush(fpTransducers);
     }
 
+    write(fd_fpTransducers, APPLICATION_ENDED_MESSAGE, strlen(APPLICATION_ENDED_MESSAGE));
+
     fclose(fp_g18);
     fclose(fpTransducers);
+
+    return 0;
 }
 
 void signalHandler(int signal) {

@@ -16,6 +16,12 @@
 
 #define CONCAT(dest, s)     dest s
 
+/*
+ * "[ $(ls __PATHDIR__ | wc -l) -gt 0 ] && rm __PATHDIR__* || :"
+ * TODO: controllare se l'ultimo carattere di PATHDIR è '/' e, in caso mancasse, inserirlo?
+ */
+#define REMOVE_FILES_FROM(PATHDIR) "[ $(ls " PATHDIR " | wc -l) -gt 0 ] && rm " PATHDIR "* || :"
+
 enum boolean {FALSE, TRUE};
 
 FILE *open_file(const char* filename, const char* mode);

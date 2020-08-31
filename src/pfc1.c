@@ -2,9 +2,11 @@
 #include <unistd.h>
 #include <fcntl.h>
 #include <signal.h>
+#include <string.h>
 #include "../include/utility.h"
 #include "../include/pfc.h"
 #include "../include/path.h"
+#include "../include/messages.h"
 
 enum boolean PFC1_sigUsr;
 enum boolean PFC1_sigRestart;
@@ -39,6 +41,8 @@ int main(int argc, const char * argv[]) {
 
         read = exe(fd_pipe, fp_g18, last_read, &previousLatitude, &previousLongitude, &PFC1_sigUsr, &PFC1_sigRestart);
     }
+
+    write(fd_pipe, APPLICATION_ENDED_MESSAGE, strlen(APPLICATION_ENDED_MESSAGE));
 
     fclose(fp_g18);
     close(fd_pipe);

@@ -9,7 +9,13 @@
 #include "../include/path.h"
 
 int main(int argc, const char * argv[]) {
-    //TODO usare strtol invece che atoi
+    /*
+     * TODO usare strtol invece che atoi
+     * TODO leggere il nuovo pid dalla pipe del pfcDisconnetedSwitch
+     * TODO inserire le istruzione del generatoreFallimenti in un ciclo
+     *      while che termina quando dalla pipe del pfcDisconnetedSwitch
+     *      si riceve "terminated"
+     */
 
     srand(time(NULL));
 

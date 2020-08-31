@@ -8,6 +8,7 @@
 #include "../include/utility.h"
 #include "../include/pfc.h"
 #include "../include/path.h"
+#include "../include/messages.h"
 
 enum boolean PFC2_sigusr;
 enum boolean PFC2_sigstop;
@@ -55,8 +56,12 @@ int main(int argc, const char * argv[]) {
         read = exe(clientFd, fp_g18, last_read, &previousLatitude, &previousLongitude, &PFC2_sigusr, &PFC2_sigstop);
     }
 
+    write(clientFd, APPLICATION_ENDED_MESSAGE, strlen(APPLICATION_ENDED_MESSAGE));
+
     fclose(fp_g18);
     close(clientFd);
+
+    return 0;
 }
 
 void signalHandler(int signal) {

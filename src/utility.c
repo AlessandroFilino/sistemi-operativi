@@ -7,7 +7,7 @@
 FILE *open_file(const char* filename, const char* mode) {
     FILE *fp = fopen(filename, mode);
 
-    if (fp == NULL){
+    if (fp == NULL) {
         //TODO come gestire gli errori?
 
         fprintf(stderr, "File non trovato\n");

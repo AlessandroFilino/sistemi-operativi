@@ -8,35 +8,26 @@
 #include "../include/pfcDisconnectedSwitch.h"
 #include "../include/utility.h"
 #include "../include/path.h"
-#include "../include/errors.h"
+#include "../include/messages.h"
 
 int main(int argc, const char *argv[]) {
     //char *filename_g18 = argv[1];
     char *filename_g18 = "../sistemioperativi/doc/G18.txt";
 
+    int read;
     int pid_pfc;
     int pfcNumber;
     int pfcProcess[3];
     int generatoreFallimentiProcess;
-
-    int read;
+    enum boolean terminated = FALSE;
     char error[WES_MESSAGE_MAX_LENGTH] = {0};
 
     unlink(FILENAME_WES_PIPE);
     mknod(FILENAME_WES_PIPE, S_IFIFO, 0);
     chmod(FILENAME_WES_PIPE, 0660);
 
-    //TODO pipe bloccante?
-    int wesPipe = open(FILENAME_WES_PIPE, O_RDONLY | O_NONBLOCK);
+    int wesPipe = open(FILENAME_WES_PIPE, O_RDONLY);
     FILE *switchLog = open_file(FILENAME_SWITCH_LOG, "w");
-
-    /*
-     * TODO: signal(SIGCHLD, SIG_IGN); (ignore death-of-child signals to prevent zombies)
-     *       oppure
-     *       signal (SIGCHLD, childHandler); (Install death-of-child handler)
-     *       ?
-     */
-    signal (SIGCHLD, childHandler);
 
     char *PFC1_argv[] = {"pfc1", filename_g18, NULL};
     pfcProcess[0] = createChild(&execv, "pfc1", PFC1_argv);
@@ -59,7 +50,7 @@ int main(int argc, const char *argv[]) {
 
     char **pfcArgv[] = {PFC1_argv, PFC2_argv, PFC3_argv};
 
-    for(int i=0; i<50; i++) {
+    while(!terminated) {
         read = readLine(wesPipe, error, '\0');
 
         /*
@@ -67,7 +58,18 @@ int main(int argc, const char *argv[]) {
          * se avviene un errore durante la lettura, readLine restituisce -1
          */
         if(read > 0) {
-            if(strcmp(error, WES_MESSAGE_EMERGENCY) == 0) {
+            if(strcmp(error, APPLICATION_ENDED_MESSAGE) == 0) {
+                terminated = TRUE;
+                //TODO inviare "Terminated" a generatoreFallimenti
+
+                /* Non abbiamo usato signal(SIGCHLD, SIG_IGN); per ignorare la morte
+                 * dei processi figli per prevenire zombie perchè ciò crea figli orfani.
+                 * Abbiamo preferito usare la wait ripetuta 4 volte (pfc1/2/3 e generatoreFallimenti)
+                 */
+                for(int i=0; i<4; i++) {
+                    wait(NULL);
+                }
+            } else if(strcmp(error, WES_MESSAGE_EMERGENCY) == 0) {
                 kill(pfcProcess[0], SIGUSR2);
                 kill(pfcProcess[1], SIGUSR2);
                 kill(pfcProcess[2], SIGUSR2);
@@ -84,9 +86,15 @@ int main(int argc, const char *argv[]) {
                 if(kill(pid_pfc, 0) == 0) {
                     //il processo esiste
 
-                    //TODO controllare se il processo è bloccato oppure no
-                    kill(pid_pfc, SIGCONT);
-                    fprintf(switchLog, "SIGCONT sent to PFC%d\n", pfcNumber);
+                    int status = 0;
+                    waitpid(pid_pfc, &status, WNOHANG | WUNTRACED);
+
+                    if(WIFSTOPPED(status) != 0) {
+                        //il processo è bloccato
+
+                        kill(pid_pfc, SIGCONT);
+                        fprintf(switchLog, "SIGCONT sent to PFC%d\n", pfcNumber);
+                    }
                 } else {
                     //il processo non esiste più
 
@@ -95,6 +103,8 @@ int main(int argc, const char *argv[]) {
 
                     pfcProcess[pfcNumber - 1] = createChild(&execv, filename, pfcArgv[pfcNumber - 1]);
                     fprintf(switchLog, "PFC%d è stato ricreato\n", pfcNumber);
+
+                    //TODO inviare il nuovo pid a generatoreFallimenti
                 }
             }
         }
@@ -105,15 +115,17 @@ int main(int argc, const char *argv[]) {
     return 0;
 }
 
-void childHandler(int sig) { /* Executed if the child dies */
-    int childPid, childStatus; /* before the parent */
+/*
+    void childHandler(int sig) {
+        int childPid, childStatus;
 
-    /* Accept child termination code */
-    childPid = wait(&childStatus);
-    printf ("Child %d terminated\n", childPid);
 
-    exit(EXIT_SUCCESS);
-}
+        childPid = wait(&childStatus);
+        printf ("Child %d terminated\n", childPid);
+
+        exit(EXIT_SUCCESS);
+    }
+ */
 
 int getErrorInfo(char *error) {
     unsigned int size = (unsigned int) strlen(error);
@@ -128,35 +140,4 @@ int getErrorInfo(char *error) {
 
     return result;
 }
-
-/*
- * Con waitpid() e WIFSTOPPED() è possibile controllare lo stato di un processo
- *
-    pid_t pid = fork();
-    if(pid == 0) {
-        printf("child\n");
-        fflush(stdout);
-        usleep((1 * 1000) * 1000 * 3);
-        printf("exit");
-        exit(EXIT_SUCCESS);
-    } else {
-        usleep((1 * 1000) * 2000);
-        kill(pid, SIGSTOP);
-        int test_status;
-        int result = waitpid(pid, &test_status, WNOHANG | WUNTRACED);
-
-        if(result > 0) {
-            printf("ok\n");
-            fflush(stdout);
-        }
-
-        printf("status: %d\n", WIFSTOPPED(test_status));
-        fflush(stdout);
-
-        usleep((1 * 1000) * 3000);
-        kill(pid, SIGCONT);
-    }
-
-    wait(NULL);
- */
 
