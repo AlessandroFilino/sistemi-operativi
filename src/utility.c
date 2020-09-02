@@ -2,9 +2,18 @@
 #include <unistd.h>
 #include <fcntl.h>
 #include <string.h>
+#include <sys/stat.h>
+#include <stdarg.h>
 #include "../include/utility.h"
 
-FILE *open_file(const char* filename, const char* mode) {
+/*
+ * TODO: in queste funzioni sarebbe corretto restituire ogni errore
+ *       perchè si tratta di funzioni generiche slegate dalla specifica
+ *       implementazione del programma. Magari per semplicità possiamo
+ *       ignorare gli errori quando richiamiamo le funzioni.
+ */
+
+FILE *openFile(const char* filename, const char* mode) {
     FILE *fp = fopen(filename, mode);
 
     if (fp == NULL) {
@@ -17,7 +26,6 @@ FILE *open_file(const char* filename, const char* mode) {
     return fp;
 }
 
-//TODO sistemare readline() usando realloc
 int readLine(int fd, char *buffer, char delimiter) {
     int n;
     int count = 0;
@@ -35,18 +43,24 @@ int readLine(int fd, char *buffer, char delimiter) {
 int createChild(int (*execv_function)(const char*, char* const*), char *filename, char **argv) {
     int pid = fork();
 
-    if (pid < 0) { /* error occurred */
+    if (pid < 0) {
         //TODO usare perror
 
         fprintf(stderr, "Fork Failed\n");
-        exit(EXIT_FAILURE);
+        return -1;
     } else if(pid == 0) {
         if(execv_function(filename, argv) == -1) {
-            exit(EXIT_FAILURE);
+            return -1;
         }
     }
 
     return pid;
+}
+
+void createPipe(char *pipename) {
+    unlink(pipename);
+    mknod(pipename, S_IFIFO, 0);
+    chmod(pipename, 0660);
 }
 
 int connectPipe(char *pipename, int mode) {
@@ -64,7 +78,75 @@ int connectPipe(char *pipename, int mode) {
     return fd;
 }
 
-int connectSocket(int clientFd, const struct sockaddr* serverSockAddrPtr, socklen_t serverLen) {
+int createServerAF_UNIXSocket(char *socketname, int maximumConnections, struct sockaddr **clientSockAddrPtr, int unsigned *clientLen) {
+    int serverFd, serverLen;
+    struct sockaddr_un serverUNIXAddress; //Server address
+    struct sockaddr* serverSockAddrPtr; //Ptr to server address
+    struct sockaddr_un clientUNIXAddress; //Client address
+
+    serverSockAddrPtr = (struct sockaddr*) &serverUNIXAddress;
+    serverLen = sizeof (serverUNIXAddress);
+    *clientSockAddrPtr = (struct sockaddr*) &clientUNIXAddress;
+    *clientLen = sizeof (clientUNIXAddress);
+
+    serverFd = socket (AF_UNIX, SOCK_STREAM, DEFAULT_PROTOCOL);
+    serverUNIXAddress.sun_family = AF_UNIX; // Set domain type
+    strcpy (serverUNIXAddress.sun_path, socketname); // Set name
+    unlink (socketname); // Remove file if it already exists
+    bind (serverFd, serverSockAddrPtr, serverLen);// Create file
+    listen (serverFd, maximumConnections); // Maximum pending connection length
+
+    return serverFd;
+    /*
+    int serverFd, clientFd, serverLen, result;
+    int unsigned clientLen;
+    struct sockaddr_un serverUNIXAddress; //Server address
+    struct sockaddr* serverSockAddrPtr; //Ptr to server address
+    struct sockaddr_un clientUNIXAddress; //Client address
+    struct sockaddr* clientSockAddrPtr;//Ptr to client address
+
+    serverSockAddrPtr = (struct sockaddr*) &serverUNIXAddress;
+    serverLen = sizeof (serverUNIXAddress);
+    clientSockAddrPtr = (struct sockaddr*) &clientUNIXAddress;
+    clientLen = sizeof (clientUNIXAddress);
+
+    serverFd = socket (AF_UNIX, SOCK_STREAM, DEFAULT_PROTOCOL);
+    serverUNIXAddress.sun_family = AF_UNIX; // Set domain type
+    strcpy (serverUNIXAddress.sun_path, FILENAME_PFC2_SOCKET); // Set name
+    unlink (FILENAME_PFC2_SOCKET); // Remove file if it already exists
+    bind (serverFd, serverSockAddrPtr, serverLen);// Create file
+    listen (serverFd, 1); // Maximum pending connection length
+     */
+}
+
+int createClientAF_UNIXSocket(char *socketname, struct sockaddr **serverSockAddrPtr, int unsigned *serverLen) {
+    int clientFd;
+    struct sockaddr_un serverUNIXAddress; //Server address
+
+    *serverSockAddrPtr = (struct sockaddr*) &serverUNIXAddress;
+    *serverLen = sizeof (serverUNIXAddress);
+
+    clientFd = socket (AF_UNIX, SOCK_STREAM, DEFAULT_PROTOCOL);
+    serverUNIXAddress.sun_family = AF_UNIX; //server domain type
+    strcpy (serverUNIXAddress.sun_path, socketname); //server name
+
+    return clientFd;
+
+    /*
+     int clientFd, serverLen;
+    struct sockaddr_un serverUNIXAddress; //Server address
+    struct sockaddr* serverSockAddrPtr; //Ptr to server address
+
+    serverSockAddrPtr = (struct sockaddr*) &serverUNIXAddress;
+    serverLen = sizeof (serverUNIXAddress);
+
+    clientFd = socket (AF_UNIX, SOCK_STREAM, DEFAULT_PROTOCOL);
+    serverUNIXAddress.sun_family = AF_UNIX; //server domain type
+    strcpy (serverUNIXAddress.sun_path, FILENAME_PFC2_SOCKET); //server name
+     */
+}
+
+void connectSocket(int clientFd, const struct sockaddr* serverSockAddrPtr, socklen_t serverLen) {
     int result;
 
     do {
@@ -75,51 +157,45 @@ int connectSocket(int clientFd, const struct sockaddr* serverSockAddrPtr, sockle
         }
     } while(result == -1);
     printf("connected!\n");
-
-    return result;
 }
 
-int digits_number(int number) {
+void setFileFlags(int fd, unsigned int newFlags) {
+    int unsigned oldFlags = fcntl(fd, F_GETFL);
+    fcntl(fd, F_SETFL, oldFlags | newFlags);
+}
+
+int numberOfDigits(int value) {
     int digits = 0;
 
     do {
-        number /= 10;
+        value /= 10;
         digits++;
-    } while (number != 0);
+    } while (value != 0);
 
     return digits;
 }
 
-enum boolean tokenize(char *string, char *separator, int tokenNumber, char *buffer[]) {
-    char *token;
+enum boolean tokenize(char *string, char *separator, int tokenNumber, ...) {
+    char (*token)[];
     char *temp = string;
 
+    va_list listOftokens;
+    va_start(listOftokens, tokenNumber);
+
     for(int i=0; i<tokenNumber; i++) {
-        token = strtok(temp, separator);
-        if(token == NULL){
+        token = va_arg(listOftokens, char (*)[]);
+        strcpy(*token, strtok(temp, separator));
+
+        if(token == NULL) {
             return FALSE;
         }
-
-        buffer[i] = token;
 
         if(i == 0) {
             temp = NULL;
         }
     }
 
-    return TRUE;
-}
-
-void intToString(char *buffer, int buffer_size, int number) {
-    if(snprintf(buffer, sizeof(char) * buffer_size, "%d", number) < 0){
-        //TODO stampare errore
-    }
-}
-
-int doubleToString(char *buffer, int buffer_size, double number) {
-    if(snprintf(buffer, sizeof(char) * buffer_size, "%.2f", number) < 0){
-        return FALSE;
-    }
+    va_end(listOftokens);
 
     return TRUE;
 }

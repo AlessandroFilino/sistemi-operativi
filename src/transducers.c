@@ -19,63 +19,26 @@ int main(int argc, const char * argv[]) {
 
     //pfc1
     char *velocita_pfc1 = calloc(10, sizeof(char));
-    unlink(FILENAME_PFC1_PIPE);
-    mknod(FILENAME_PFC1_PIPE, S_IFIFO, 0);
-    chmod(FILENAME_PFC1_PIPE, 0660);
-    int fd_PFC1 = open(FILENAME_PFC1_PIPE, O_RDONLY | O_NONBLOCK);
-    FILE *speedPFC1Log = open_file(FILENAME_SPEEDPFC1_LOG, "w");
+    createPipe(FILENAME_PFC1_PIPE);
+    int fd_PFC1pipe = open(FILENAME_PFC1_PIPE, O_RDONLY | O_NONBLOCK);
+    FILE *speedPFC1Log = openFile(FILENAME_SPEEDPFC1_LOG, "w");
 
     //pfc2
-    int serverFd, clientFd, serverLen, result;
-    int unsigned clientLen;
-    struct sockaddr_un serverUNIXAddress; //Server address
-    struct sockaddr* serverSockAddrPtr; //Ptr to server address
-    struct sockaddr_un clientUNIXAddress; //Client address
+    int serverFd, clientFd;
+    unsigned int clientLen;
     struct sockaddr* clientSockAddrPtr;//Ptr to client address
 
-    serverSockAddrPtr = (struct sockaddr*) &serverUNIXAddress;
-    serverLen = sizeof (serverUNIXAddress);
-    clientSockAddrPtr = (struct sockaddr*) &clientUNIXAddress;
-    clientLen = sizeof (clientUNIXAddress);
-
-    serverFd = socket (AF_UNIX, SOCK_STREAM, DEFAULT_PROTOCOL);
-    serverUNIXAddress.sun_family = AF_UNIX; // Set domain type
-    strcpy (serverUNIXAddress.sun_path, FILENAME_PFC2_SOCKET); // Set name
-    unlink (FILENAME_PFC2_SOCKET); // Remove file if it already exists
-    bind (serverFd, serverSockAddrPtr, serverLen);// Create file
-    listen (serverFd, 1); // Maximum pending connection length
+    serverFd = createServerAF_UNIXSocket(FILENAME_PFC2_SOCKET, MAXIMUM_CONNECTIONS, &clientSockAddrPtr, &clientLen);
     clientFd = accept(serverFd, clientSockAddrPtr, &clientLen);
+    setFileFlags(clientFd, O_NONBLOCK);
 
-    // TODO: recv(clientFd, velocita_pfc2, sizeof(char) * 6, MSG_DONTWAIT) oppure fcntl(clientFd, F_SETFL, O_NONBLOCK)?
-    int flags = fcntl(clientFd, F_GETFL);
-    if(flags == -1) {
-        exit(EXIT_FAILURE);
-    }
-
-    if(fcntl(clientFd, F_SETFL, flags | O_NONBLOCK) != 0) {
-        exit(EXIT_FAILURE);
-    }
-
-    FILE *speedPFC2Log = open_file(FILENAME_SPEEDPFC2_LOG, "w");
+    FILE *speedPFC2Log = openFile(FILENAME_SPEEDPFC2_LOG, "w");
     char* velocita_pfc2 = calloc(10, sizeof(char));
 
     //pfc3
-    FILE *speedPFC3Log = open_file(FILENAME_SPEEDPFC3_LOG, "w");
-    int fd_PFC3 = open(FILENAME_PFC3_FILE, O_RDONLY);
+    int fd_PFC3File = open(FILENAME_PFC3_FILE, O_RDONLY);
+    FILE *speedPFC3Log = openFile(FILENAME_SPEEDPFC3_LOG, "w");
     char *velocita_pfc3 = calloc(10, sizeof(char));
-
-    /*usleep(1000);
-
-    velocita_pfc2 = calloc(6, sizeof(char));
-    read(clientFd, velocita_pfc2, sizeof(char) * 6);
-    printf("-- transducer: %s\n", velocita_pfc2);
-    free(velocita_pfc2);
-
-    velocita_pfc2 = calloc(6, sizeof(char));
-    read(clientFd, velocita_pfc2, sizeof(char) * 6);
-    printf("-- transducer: %s\n", velocita_pfc2);
-    free(velocita_pfc2);*/
-
 
     while((strcmp(velocita_pfc1, APPLICATION_ENDED_MESSAGE) != 0) ||
             (strcmp(velocita_pfc2, APPLICATION_ENDED_MESSAGE) != 0) ||
@@ -93,7 +56,7 @@ int main(int argc, const char * argv[]) {
          */
 
         //pfc1
-        read = readLine(fd_PFC1, velocita_pfc1, '\0');
+        read = readLine(fd_PFC1pipe, velocita_pfc1, '\0');
         if(read > 0) {
             memset(velocita_pfc1, '\0', sizeof(char) * 10);
             fwrite(velocita_pfc1, sizeof(char), read, speedPFC1Log);
@@ -115,7 +78,7 @@ int main(int argc, const char * argv[]) {
 
 
         //pfc3
-        read = readLine(fd_PFC3, velocita_pfc3, '\0');
+        read = readLine(fd_PFC3File, velocita_pfc3, '\0');
         if(read > 0) {
             memset(velocita_pfc3, '\0', sizeof(char) * 10);
             fwrite(velocita_pfc3, sizeof(char), read, speedPFC3Log);
@@ -132,15 +95,16 @@ int main(int argc, const char * argv[]) {
     }
 
     //pfc1
-    close(fd_PFC1);
+    close(fd_PFC1pipe);
     fclose(speedPFC1Log);
 
     //pfc2
-    close(clientFd); // Close the socket
+    close(clientFd);
+    close(serverFd);
     fclose(speedPFC2Log);
 
     //pfc3
-    close(fd_PFC3);
+    close(fd_PFC3File);
     fclose(speedPFC3Log);
 
     return 0;

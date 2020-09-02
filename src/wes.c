@@ -10,7 +10,7 @@
 
 int main(int argc, const char *argv[]) {
     int fd = connectPipe(FILENAME_WES_PIPE, O_WRONLY);
-    FILE *status = open_file(FILENAME_STATUS_LOG, "w+");
+    FILE *status = openFile(FILENAME_STATUS_LOG, "w+");
 
     int speedPFC1Log = open(FILENAME_SPEEDPFC1_LOG, O_RDONLY | O_CREAT);
     int speedPFC2Log = open(FILENAME_SPEEDPFC2_LOG, O_RDONLY | O_CREAT);
@@ -20,9 +20,9 @@ int main(int argc, const char *argv[]) {
     double velocita_pfc2 = 0;
     double velocita_pfc3 = 0;
 
-    char buffer_pfc1[strlen(APPLICATION_ENDED_MESSAGE)+1] = {0};
-    char buffer_pfc2[strlen(APPLICATION_ENDED_MESSAGE)+1] = {0};
-    char buffer_pfc3[strlen(APPLICATION_ENDED_MESSAGE)+1] = {0};
+    char buffer_pfc1[string_length(APPLICATION_ENDED_MESSAGE) + 1] = {0};
+    char buffer_pfc2[string_length(APPLICATION_ENDED_MESSAGE) + 1] = {0};
+    char buffer_pfc3[string_length(APPLICATION_ENDED_MESSAGE) + 1] = {0};
 
     enum boolean terminated = FALSE;
 
@@ -49,38 +49,51 @@ int main(int argc, const char *argv[]) {
 
             if (velocita_pfc1 == velocita_pfc2) {
                 if (velocita_pfc1 == velocita_pfc3) {
-                    printf(CONCAT(WES_MESSAGE_SUCCESS, "\n"));
-                    fwrite(CONCAT(WES_MESSAGE_SUCCESS, "\n"), sizeof(char), strlen(WES_MESSAGE_SUCCESS) + 1, status);
+                    char *message = concat(WES_MESSAGE_SUCCESS, "\n");
+                    int messageLength = string_length(WES_MESSAGE_SUCCESS) + 1;
+
+                    printf("%s", message);
+                    fwrite(message, sizeof(char), messageLength, status);
                 } else {
-                    printf(CONCAT(WES_MESSAGE_PFC3_ERROR, "\n"));
-                    fwrite(CONCAT(WES_MESSAGE_PFC3_ERROR, "\n"), sizeof(char), strlen(WES_MESSAGE_PFC3_ERROR) + 1,
-                           status);
-                    write(fd, WES_MESSAGE_PFC3_ERROR, sizeof(char) * strlen(WES_MESSAGE_PFC3_ERROR));
+                    char *message = concat(WES_MESSAGE_PFC3_ERROR, "\n");
+                    int messageLength = string_length(WES_MESSAGE_PFC3_ERROR) + 1;
+
+                    printf("%s", message);
+                    fwrite(message, sizeof(char), messageLength, status);
+                    write(fd, WES_MESSAGE_PFC3_ERROR, sizeof(char) * string_length(WES_MESSAGE_PFC3_ERROR));
                 }
             } else {
                 if (velocita_pfc1 == velocita_pfc3) {
-                    printf(CONCAT(WES_MESSAGE_PFC2_ERROR, "\n"));
-                    fwrite(CONCAT(WES_MESSAGE_PFC2_ERROR, "\n"), sizeof(char), strlen(WES_MESSAGE_PFC2_ERROR) + 1,
-                           status);
-                    write(fd, WES_MESSAGE_PFC2_ERROR, sizeof(char) * strlen(WES_MESSAGE_PFC2_ERROR));
+                    char *message = concat(WES_MESSAGE_PFC2_ERROR, "\n");
+                    int messageLength = string_length(WES_MESSAGE_PFC2_ERROR) + 1;
+
+                    printf("%s", message);
+                    fwrite(message, sizeof(char), messageLength, status);
+                    write(fd, WES_MESSAGE_PFC2_ERROR, sizeof(char) * string_length(WES_MESSAGE_PFC2_ERROR));
                 } else if (velocita_pfc2 == velocita_pfc3) {
-                    printf(CONCAT(WES_MESSAGE_PFC1_ERROR, "\n"));
-                    fwrite(CONCAT(WES_MESSAGE_PFC1_ERROR, "\n"), sizeof(char), strlen(WES_MESSAGE_PFC1_ERROR) + 1,
-                           status);
-                    write(fd, WES_MESSAGE_PFC1_ERROR, sizeof(char) * strlen(WES_MESSAGE_PFC1_ERROR));
+                    char *message = concat(WES_MESSAGE_PFC1_ERROR, "\n");
+                    int messageLength = string_length(WES_MESSAGE_PFC1_ERROR) + 1;
+
+                    printf("%s", message);
+                    fwrite(message, sizeof(char), messageLength, status);
+                    write(fd, WES_MESSAGE_PFC1_ERROR, sizeof(char) * string_length(WES_MESSAGE_PFC1_ERROR));
                 } else {
-                    printf(CONCAT(WES_MESSAGE_EMERGENCY, "\n"));
-                    fwrite(CONCAT(WES_MESSAGE_EMERGENCY, "\n"), sizeof(char), strlen(WES_MESSAGE_EMERGENCY) + 1,
-                           status);
-                    write(fd, WES_MESSAGE_EMERGENCY, sizeof(char) * strlen(WES_MESSAGE_EMERGENCY));
+                    char *message = concat(WES_MESSAGE_EMERGENCY, "\n");
+                    int messageLength = string_length(WES_MESSAGE_EMERGENCY) + 1;
+
+                    printf("%s", message);
+                    fwrite(message, sizeof(char), messageLength, status);
+                    write(fd, WES_MESSAGE_EMERGENCY, sizeof(char) * string_length(WES_MESSAGE_EMERGENCY));
                 }
             }
         }
     }
+    char *message = concat(APPLICATION_ENDED_MESSAGE, "\n");
+    int messageLength = string_length(APPLICATION_ENDED_MESSAGE) + 1;
 
-    printf(CONCAT(APPLICATION_ENDED_MESSAGE, "\n"));
-    fwrite(CONCAT(APPLICATION_ENDED_MESSAGE, "\n"), sizeof(char), strlen(APPLICATION_ENDED_MESSAGE)+1, status);
-    write(fd, APPLICATION_ENDED_MESSAGE, sizeof(char) * strlen(APPLICATION_ENDED_MESSAGE));
+    printf("%s", message);
+    fwrite(message, sizeof(char), messageLength, status);
+    write(fd, APPLICATION_ENDED_MESSAGE, sizeof(char) * string_length(APPLICATION_ENDED_MESSAGE));
 
     close(speedPFC1Log);
     close(speedPFC2Log);
@@ -93,11 +106,10 @@ int main(int argc, const char *argv[]) {
 
 double readSpeed(int fd) {
     double speed;
-    char *buffer = calloc(10, sizeof(char));
+    char buffer[10] = {0};
 
     readLine(fd, buffer, '\n');
     speed = strtod(buffer, NULL);
-    free(buffer);
 
     return speed;
 }

@@ -84,19 +84,20 @@ ssize_t readCorrectLine(char *buffer, size_t bufferLength, FILE *fp) {
     return read;
 }
 
-void getGeographicCoordinates(char* line, double* latitude, double* longitude){
+void getGeographicCoordinates(char* line, double* latitude, double* longitude) {
+    //TODO usare la funzione tokenize di utility.c
     char* tok;
-    tok = strtok(line, ",");
+    tok = strtok(line, SEPARATOR_TOKENIZER);
 
+    //TODO gestire errore
     if(tok == NULL){
         fprintf(stderr, "Errore\n");
-        exit (EXIT_FAILURE);
     }
 
-    *latitude = atof(strtok(NULL, ","));
-    strtok(NULL, ","); //direzioneLatitudine (da scartare)
-    *longitude = atof(strtok(NULL, ","));
-    strtok(NULL, ","); //direzioneLongitudine (da scartare)
+    *latitude = strtod(strtok(NULL, SEPARATOR_TOKENIZER), NULL);
+    strtok(NULL, SEPARATOR_TOKENIZER); //direzioneLatitudine (da scartare)
+    *longitude = strtod(strtok(NULL, SEPARATOR_TOKENIZER), NULL);
+    strtok(NULL, SEPARATOR_TOKENIZER); //direzioneLongitudine (da scartare)
 }
 
 double degreeToRadian(double degree) {
@@ -145,7 +146,7 @@ int exe(int fd_pfcToTransducers, FILE *fp_g18, int last_read, double *previousLa
     }
 
     int int_section = (int) velocity;
-    int digits = digits_number(int_section);
+    int digits = numberOfDigits(int_section);
 
     /*
      * size_t is an unsigned integer type of at least 16 bit.

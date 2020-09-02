@@ -2,11 +2,11 @@
 #define pfc_h
 
 #define TEMPO 1 //1 secondo
-#define DEFAULT_PROTOCOL 0
 #define RAGGIO_TERRA_METRI 6367863
 #define NMEA_FORMAT "$GPGLL"
 #define MAX_SPEED_DIGITS 5
 #define MAX_LINE_LENGTH 150
+#define SEPARATOR_TOKENIZER ","
 #define MAX_G18_FILE_LENGTH_DIGITS 6 /*Massimo numero di cifre della lunghezza in bytes del file g18.txt*/
 
 #include "utility.h"

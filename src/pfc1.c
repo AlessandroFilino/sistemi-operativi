@@ -24,7 +24,7 @@ int main(int argc, const char * argv[]) {
 
     //TODO char *filename_g18 = argv[1];
     char *filename_g18 = "../doc/G18.txt";
-    FILE *fp_g18 = open_file(filename_g18, "r");
+    FILE *fp_g18 = openFile(filename_g18, "r");
 
     last_read = open(FILENAME_LAST_READ, O_CREAT | O_RDWR);
     changePointerPosition(fp_g18, last_read);
@@ -42,7 +42,7 @@ int main(int argc, const char * argv[]) {
         read = exe(fd_pipe, fp_g18, last_read, &previousLatitude, &previousLongitude, &PFC1_sigUsr, &PFC1_sigRestart);
     }
 
-    write(fd_pipe, APPLICATION_ENDED_MESSAGE, strlen(APPLICATION_ENDED_MESSAGE));
+    write(fd_pipe, APPLICATION_ENDED_MESSAGE, string_length(APPLICATION_ENDED_MESSAGE));
 
     fclose(fp_g18);
     close(fd_pipe);

@@ -15,7 +15,7 @@ int main(int argc, const char* argv[]) {
     int status;
     char *filename_G18 = "../doc/G18.txt";
 
-    if(system(REMOVE_FILES_FROM(PATHNAME_TEMP)) || system(REMOVE_FILES_FROM(PATHNAME_LOG)) != 0) {
+    if(system(remove_files_from(PATHNAME_TEMP)) || system(remove_files_from(PATHNAME_LOG)) != 0) {
         fprintf(stderr, "%s", MAIN_PATH_ERROR_MESSAGE);
         exit(EXIT_FAILURE);
     }

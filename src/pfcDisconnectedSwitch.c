@@ -17,37 +17,48 @@ int main(int argc, const char *argv[]) {
     int read;
     int pid_pfc;
     int pfcNumber;
-    int pfcProcess[3];
+    int pfcProcessPid[3];
     int generatoreFallimentiProcess;
     enum boolean terminated = FALSE;
     char error[WES_MESSAGE_MAX_LENGTH] = {0};
 
-    unlink(FILENAME_WES_PIPE);
-    mknod(FILENAME_WES_PIPE, S_IFIFO, 0);
-    chmod(FILENAME_WES_PIPE, 0660);
+    createPipe(FILENAME_WES_PIPE);
+    createPipe(FILENAME_PFCSWITCH_PIPE);
 
+    int PfcSwitchPipe = open(FILENAME_PFCSWITCH_PIPE, O_WRONLY);
     int wesPipe = open(FILENAME_WES_PIPE, O_RDONLY);
-    FILE *switchLog = open_file(FILENAME_SWITCH_LOG, "w");
+    FILE *switchLog = openFile(FILENAME_SWITCH_LOG, "w");
 
     char *PFC1_argv[] = {"pfc1", filename_g18, NULL};
-    pfcProcess[0] = createChild(&execv, "pfc1", PFC1_argv);
+    pfcProcessPid[0] = createChild(&execv, "pfc1", PFC1_argv);
 
     char *PFC2_argv[] = {"pfc2", filename_g18, NULL};
-    pfcProcess[1] = createChild(&execv, "pfc2", PFC2_argv);
+    pfcProcessPid[1] = createChild(&execv, "pfc2", PFC2_argv);
 
     char *PFC3_argv[] = {"pfc3", filename_g18, NULL};
-    pfcProcess[2] = createChild(&execv, "pfc3", PFC3_argv);
+    pfcProcessPid[2] = createChild(&execv, "pfc3", PFC3_argv);
 
-    char *pfc1Process = malloc(sizeof(char) * 10);
-    char *pfc2Process = malloc(sizeof(char) * 10);
-    char *pfc3Process = malloc(sizeof(char) * 10);
-    intToString(pfc1Process, 10, pfcProcess[0]);
-    intToString(pfc2Process, 10, pfcProcess[1]);
-    intToString(pfc3Process, 10, pfcProcess[2]);
+    /*
+     * alloco 3 buffer per contenere i PID dei processi PFC
+     * in forma di stringa. snprintf mi permette appunto di
+     * scrivere ogni PID all'interno del corrispondente buffer
+     * sottoforma di stringa. I PID devono essere inviati come
+     * parametri al processo generatoreFallimenti.
+     */
+    char pfc1Process[10] = {0};
+    char pfc2Process[10] = {0};
+    char pfc3Process[10] = {0};
+    snprintf(pfc1Process, sizeof(char) * 10, "%d", pfcProcessPid[0]);
+    snprintf(pfc2Process, sizeof(char) * 10, "%d", pfcProcessPid[1]);
+    snprintf(pfc3Process, sizeof(char) * 10, "%d", pfcProcessPid[2]);
 
     char *generatoreFallimenti_argv[] = {"generatoreFallimenti", pfc1Process, pfc2Process, pfc3Process};
-    generatoreFallimentiProcess = createChild(&execv, "generatoreFallimenti_argv", generatoreFallimenti_argv);
+    generatoreFallimentiProcess = createChild(&execv, "generatoreFallimenti", generatoreFallimenti_argv);
 
+    /*
+     * TODO: usare una macro al posto di **pfcArgv[] per creare i token
+     *       #define get_argv(pfcId) PFC##pfcId##_argv
+     */
     char **pfcArgv[] = {PFC1_argv, PFC2_argv, PFC3_argv};
 
     while(!terminated) {
@@ -70,14 +81,14 @@ int main(int argc, const char *argv[]) {
                     wait(NULL);
                 }
             } else if(strcmp(error, WES_MESSAGE_EMERGENCY) == 0) {
-                kill(pfcProcess[0], SIGUSR2);
-                kill(pfcProcess[1], SIGUSR2);
-                kill(pfcProcess[2], SIGUSR2);
+                kill(pfcProcessPid[0], SIGUSR2);
+                kill(pfcProcessPid[1], SIGUSR2);
+                kill(pfcProcessPid[2], SIGUSR2);
 
                 fprintf(switchLog, "SIGUSR2 sent to PFC1, PFC2, PFC3\n");
             } else {
                 pfcNumber = getErrorInfo(error);
-                pid_pfc = pfcProcess[pfcNumber - 1];
+                pid_pfc = pfcProcessPid[pfcNumber - 1];
 
                 /*
                  * kill(pidFiglio, 0) restituisce 0 se esiste un processo
@@ -99,12 +110,15 @@ int main(int argc, const char *argv[]) {
                     //il processo non esiste più
 
                     char filename[4];
-                    sprintf(filename, "pfc%d", pfcNumber);
+                    snprintf(filename, sizeof(char) * 4, "pfc%d", pfcNumber);
 
-                    pfcProcess[pfcNumber - 1] = createChild(&execv, filename, pfcArgv[pfcNumber - 1]);
+                    int newPid = createChild(&execv, filename, pfcArgv[pfcNumber - 1]);
+                    pfcProcessPid[pfcNumber - 1] = newPid;
                     fprintf(switchLog, "PFC%d è stato ricreato\n", pfcNumber);
 
-                    //TODO inviare il nuovo pid a generatoreFallimenti
+                    char message[PFCDISCONNECTEDSWITCH_MESSAGE_MAX_LENGTH];
+                    snprintf(message, sizeof(char) * PFCDISCONNECTEDSWITCH_MESSAGE_MAX_LENGTH, "%d%c%d", pfcNumber, PFCDISCONNECTEDSWITCH_SEPARATOR, newPid);
+                    write(PfcSwitchPipe, message, PFCDISCONNECTEDSWITCH_MESSAGE_MAX_LENGTH);
                 }
             }
         }
@@ -128,7 +142,7 @@ int main(int argc, const char *argv[]) {
  */
 
 int getErrorInfo(char *error) {
-    unsigned int size = (unsigned int) strlen(error);
+    unsigned int size = (unsigned int) string_length(error);
 
     int result = 0;
     char *endPointer = &error[size-1];

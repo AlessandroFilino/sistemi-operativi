@@ -13,6 +13,9 @@
 #define MAIN_PATH_ERROR_MESSAGE "main: " PATH_ERROR_MESSAGE
 #define MAIN_INPUT_FNF_MESSAGE  "main: " INPUT_FNF_MESSAGE
 
+#define PFCDISCONNECTEDSWITCH_SEPARATOR                         ':'
+#define PFCDISCONNECTEDSWITCH_MESSAGE_MAX_LENGTH                10
+
 #define APPLICATION_ENDED_MESSAGE "Terminated"
 
 #endif

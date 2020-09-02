@@ -25,7 +25,7 @@ int main(int argc, const char * argv[]) {
 
     //TODO char *filename_g18 = argv[1];
     char *filename_g18 = "../doc/G18.txt";
-    FILE *fp_g18 = open_file(filename_g18, "r");
+    FILE *fp_g18 = openFile(filename_g18, "r");
 
     last_read = open(FILENAME_LAST_READ, O_CREAT | O_RDWR);
     changePointerPosition(fp_g18, last_read);
@@ -33,19 +33,12 @@ int main(int argc, const char * argv[]) {
     //TODO unlink va rimosso
     unlink (FILENAME_PFC2_SOCKET);
 
-    int clientFd, serverLen, result;
-    struct sockaddr_un serverUNIXAddress; /*Server address */
+    int clientFd;
+    unsigned int serverLen;
     struct sockaddr* serverSockAddrPtr; /*Ptr to server address*/
-    
-    serverSockAddrPtr = (struct sockaddr*) &serverUNIXAddress;
-    serverLen = sizeof (serverUNIXAddress);
-    
-    clientFd = socket (AF_UNIX, SOCK_STREAM, DEFAULT_PROTOCOL);
-    serverUNIXAddress.sun_family = AF_UNIX; /* server domain type */
-    strcpy (serverUNIXAddress.sun_path, FILENAME_PFC2_SOCKET); /* server name */
 
-    //TODO result mi serve? o posso cambiare connectSocket() in void?
-    result = connectSocket(clientFd, serverSockAddrPtr, serverLen);
+    clientFd = createClientAF_UNIXSocket(FILENAME_PFC2_SOCKET, &serverSockAddrPtr, &serverLen);
+    connectSocket(clientFd, serverSockAddrPtr, serverLen);
 
     read = setPreviousGeographicCoordinates(fp_g18, &previousLatitude, &previousLongitude);
 
@@ -56,7 +49,7 @@ int main(int argc, const char * argv[]) {
         read = exe(clientFd, fp_g18, last_read, &previousLatitude, &previousLongitude, &PFC2_sigusr, &PFC2_sigstop);
     }
 
-    write(clientFd, APPLICATION_ENDED_MESSAGE, strlen(APPLICATION_ENDED_MESSAGE));
+    write(clientFd, APPLICATION_ENDED_MESSAGE, string_length(APPLICATION_ENDED_MESSAGE));
 
     fclose(fp_g18);
     close(clientFd);

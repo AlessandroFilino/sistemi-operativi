@@ -6,33 +6,36 @@
 #include <sys/un.h>
 
 /*
- * #define ARRAY_LENGTH(array) (sizeof(array)/sizeof(array[0]))
- *
- * ARRAY_LENGTH considera anche il carattere di fine stringa
- * perciò dobbiamo sottrarre 1 per il calcolo della lunghezza
- * effettiva
- * #define STRLEN(s)           (ARRAY_LENGTH(s)-1)
- */
-
-#define CONCAT(dest, s)     dest s
-
-/*
  * "[ $(ls __PATHDIR__ | wc -l) -gt 0 ] && rm __PATHDIR__* || :"
  * TODO: controllare se l'ultimo carattere di PATHDIR è '/' e, in caso mancasse, inserirlo?
  */
-#define REMOVE_FILES_FROM(PATHDIR) "[ $(ls " PATHDIR " | wc -l) -gt 0 ] && rm " PATHDIR "* || :"
+#define remove_files_from(PATHDIR) "[ $(ls " PATHDIR " | wc -l) -gt 0 ] && rm " PATHDIR "* || :"
+#define concat(DEST, S)            DEST S
+
+/*
+ * array_length considera anche il carattere di fine stringa
+ * perciò dobbiamo sottrarre 1 per il calcolo della lunghezza
+ * effettiva
+ */
+#define array_length(ARRAY)        (sizeof(ARRAY)/sizeof(ARRAY[0]))
+#define string_length(S)           (array_length(S)-1)
+
+#define DEFAULT_PROTOCOL 0
 
 enum boolean {FALSE, TRUE};
 
-FILE *open_file(const char* filename, const char* mode);
+FILE *openFile(const char* filename, const char* mode);
 int readLine(int fd, char *buffer, char delimiter);
 int createChild(int (*execv_function)(const char*, char* const*), char *filename, char **argv);
-int connectPipe(char *pipename, int mode);
-int connectSocket(int clientFd, const struct sockaddr* serverSockAddrPtr, socklen_t serverLen);
-int digits_number(int number);
-enum boolean tokenize(char *string, char *separator, int tokenNumber, char *buffer[]);
 
-void intToString(char *buffer, int buffer_size, int number);
-int doubleToString(char *buffer, int buffer_size, double number);
+void createPipe(char *pipename);
+int connectPipe(char *pipename, int mode);
+int createServerAF_UNIXSocket(char *socketname, int maximumConnections, struct sockaddr **clientSockAddrPtr, int unsigned *clientLen);
+int createClientAF_UNIXSocket(char *socketname, struct sockaddr **serverSockAddrPtr, int unsigned *serverLen);
+void connectSocket(int clientFd, const struct sockaddr* serverSockAddrPtr, socklen_t serverLen);
+void setFileFlags(int fd, unsigned int newFlags);
+
+int numberOfDigits(int value);
+enum boolean tokenize(char *string, char *separator, int tokenNumber, ...);
 
 #endif
