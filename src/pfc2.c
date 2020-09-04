@@ -27,24 +27,24 @@ int main(int argc, const char * argv[]) {
     char *filename_g18 = "../doc/G18.txt";
     FILE *fp_g18 = openFile(filename_g18, "r");
 
-    last_read = open(FILENAME_LAST_READ, O_CREAT | O_RDWR);
+    last_read = open(FILENAME_LAST_READ, O_CREAT | O_RDWR, 0660);
     changePointerPosition(fp_g18, last_read);
 
     //TODO unlink va rimosso
-    unlink (FILENAME_PFC2_SOCKET);
+    //unlink (FILENAME_PFC2_SOCKET);
 
     int clientFd;
     unsigned int serverLen;
-    struct sockaddr* serverSockAddrPtr; /*Ptr to server address*/
-
-    clientFd = createClientAF_UNIXSocket(FILENAME_PFC2_SOCKET, &serverSockAddrPtr, &serverLen);
+    struct sockaddr_un serverUNIXAddress; //Server address
+    struct sockaddr* serverSockAddrPtr; //Ptr to server address
+    clientFd = createClientAF_UNIXSocket(FILENAME_PFC2_SOCKET, &serverUNIXAddress, &serverSockAddrPtr, &serverLen);
     connectSocket(clientFd, serverSockAddrPtr, serverLen);
 
     read = setPreviousGeographicCoordinates(fp_g18, &previousLatitude, &previousLongitude);
 
     while(read != -1) {
         //TODO usare sleep(1)
-        usleep((1 * 1000) * 1000); //1000 millisecondi
+        usleep((1 * 1000) * 1000); //1000 millisecondi = 1 secondo
 
         read = exe(clientFd, fp_g18, last_read, &previousLatitude, &previousLongitude, &PFC2_sigusr, &PFC2_sigstop);
     }

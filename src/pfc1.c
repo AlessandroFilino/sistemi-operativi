@@ -26,18 +26,18 @@ int main(int argc, const char * argv[]) {
     char *filename_g18 = "../doc/G18.txt";
     FILE *fp_g18 = openFile(filename_g18, "r");
 
-    last_read = open(FILENAME_LAST_READ, O_CREAT | O_RDWR);
+    last_read = open(FILENAME_LAST_READ, O_CREAT | O_RDWR, 0660);
     changePointerPosition(fp_g18, last_read);
 
     //TODO unlink va rimosso
-    unlink(FILENAME_PFC1_PIPE);
+    //unlink(FILENAME_PFC1_PIPE);
     fd_pipe = connectPipe(FILENAME_PFC1_PIPE, O_WRONLY);
 
     read = setPreviousGeographicCoordinates(fp_g18, &previousLatitude, &previousLongitude);
 
     while(read != -1) {
         //TODO usare sleep(1)
-        usleep((1 * 1000) * 1000); //1000 millisecondi
+        usleep((1 * 1000) * 1000); //1000 millisecondi = 1 secondo
 
         read = exe(fd_pipe, fp_g18, last_read, &previousLatitude, &previousLongitude, &PFC1_sigUsr, &PFC1_sigRestart);
     }

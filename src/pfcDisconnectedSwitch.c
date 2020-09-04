@@ -22,21 +22,14 @@ int main(int argc, const char *argv[]) {
     enum boolean terminated = FALSE;
     char error[WES_MESSAGE_MAX_LENGTH] = {0};
 
-    createPipe(FILENAME_WES_PIPE);
-    createPipe(FILENAME_PFCSWITCH_PIPE);
-
-    int PfcSwitchPipe = open(FILENAME_PFCSWITCH_PIPE, O_WRONLY);
-    int wesPipe = open(FILENAME_WES_PIPE, O_RDONLY);
-    FILE *switchLog = openFile(FILENAME_SWITCH_LOG, "w");
-
     char *PFC1_argv[] = {"pfc1", filename_g18, NULL};
-    pfcProcessPid[0] = createChild(&execv, "pfc1", PFC1_argv);
+    //pfcProcessPid[0] = createChild(&execv, "pfc1", PFC1_argv);
 
     char *PFC2_argv[] = {"pfc2", filename_g18, NULL};
-    pfcProcessPid[1] = createChild(&execv, "pfc2", PFC2_argv);
+    //pfcProcessPid[1] = createChild(&execv, "pfc2", PFC2_argv);
 
     char *PFC3_argv[] = {"pfc3", filename_g18, NULL};
-    pfcProcessPid[2] = createChild(&execv, "pfc3", PFC3_argv);
+    //pfcProcessPid[2] = createChild(&execv, "pfc3", PFC3_argv);
 
     /*
      * alloco 3 buffer per contenere i PID dei processi PFC
@@ -53,7 +46,7 @@ int main(int argc, const char *argv[]) {
     snprintf(pfc3Process, sizeof(char) * 10, "%d", pfcProcessPid[2]);
 
     char *generatoreFallimenti_argv[] = {"generatoreFallimenti", pfc1Process, pfc2Process, pfc3Process};
-    generatoreFallimentiProcess = createChild(&execv, "generatoreFallimenti", generatoreFallimenti_argv);
+    //generatoreFallimentiProcess = createChild(&execv, "generatoreFallimenti", generatoreFallimenti_argv);
 
     /*
      * TODO: usare una macro al posto di **pfcArgv[] per creare i token
@@ -61,22 +54,35 @@ int main(int argc, const char *argv[]) {
      */
     char **pfcArgv[] = {PFC1_argv, PFC2_argv, PFC3_argv};
 
-    while(!terminated) {
-        read = readLine(wesPipe, error, '\0');
+    //È meglio creare i processi pfc e poi creare le pipe
+    //perchè la wesPipe è bloccante
+    createPipe(FILENAME_WES_PIPE);
+    createPipe(FILENAME_PFCSWITCH_PIPE);
 
-        /*
-         * se la pipe è vuota, readLine restituisce 0
-         * se avviene un errore durante la lettura, readLine restituisce -1
-         */
+    int wesPipe = open(FILENAME_WES_PIPE, O_RDONLY);
+    int PfcSwitchPipe = 20; // = open(FILENAME_PFCSWITCH_PIPE, O_WRONLY);
+    FILE *switchLog = openFile(FILENAME_SWITCH_LOG, "w");
+
+    while(!terminated) {
+        sleep(1);
+        read = readLine(wesPipe, error, '\n');
+
+        //TODO rimuovere '/n' dalla stringa letta da wesPipe
+        printf("error: %s", error);
+        fflush(stdout);
+
+        //se la pipe è vuota, readLine restituisce 0
+        //se avviene un errore durante la lettura, readLine restituisce -1
+
         if(read > 0) {
             if(strcmp(error, APPLICATION_ENDED_MESSAGE) == 0) {
                 terminated = TRUE;
                 //TODO inviare "Terminated" a generatoreFallimenti
 
-                /* Non abbiamo usato signal(SIGCHLD, SIG_IGN); per ignorare la morte
-                 * dei processi figli per prevenire zombie perchè ciò crea figli orfani.
-                 * Abbiamo preferito usare la wait ripetuta 4 volte (pfc1/2/3 e generatoreFallimenti)
-                 */
+                //Non abbiamo usato signal(SIGCHLD, SIG_IGN); per ignorare la morte
+                //dei processi figli per prevenire zombie perchè ciò crea figli orfani.
+                //Abbiamo preferito usare la wait ripetuta 4 volte (pfc1/2/3 e generatoreFallimenti)
+
                 for(int i=0; i<4; i++) {
                     wait(NULL);
                 }
@@ -86,14 +92,14 @@ int main(int argc, const char *argv[]) {
                 kill(pfcProcessPid[2], SIGUSR2);
 
                 fprintf(switchLog, "SIGUSR2 sent to PFC1, PFC2, PFC3\n");
-            } else {
+            } else if (strcmp(error, WES_MESSAGE_SUCCESS) != 0) {
                 pfcNumber = getErrorInfo(error);
                 pid_pfc = pfcProcessPid[pfcNumber - 1];
 
-                /*
-                 * kill(pidFiglio, 0) restituisce 0 se esiste un processo
-                 * con pid_pfc uguale a pidFiglio, altrimenti -1
-                 */
+
+                //kill(pidFiglio, 0) restituisce 0 se esiste un processo
+                //con pid_pfc uguale a pidFiglio, altrimenti -1
+
                 if(kill(pid_pfc, 0) == 0) {
                     //il processo esiste
 
@@ -116,6 +122,7 @@ int main(int argc, const char *argv[]) {
                     pfcProcessPid[pfcNumber - 1] = newPid;
                     fprintf(switchLog, "PFC%d è stato ricreato\n", pfcNumber);
 
+                    //invio nuovo pid a GeneratoreFallimenti
                     char message[PFCDISCONNECTEDSWITCH_MESSAGE_MAX_LENGTH];
                     snprintf(message, sizeof(char) * PFCDISCONNECTEDSWITCH_MESSAGE_MAX_LENGTH, "%d%c%d", pfcNumber, PFCDISCONNECTEDSWITCH_SEPARATOR, newPid);
                     write(PfcSwitchPipe, message, PFCDISCONNECTEDSWITCH_MESSAGE_MAX_LENGTH);
@@ -125,6 +132,7 @@ int main(int argc, const char *argv[]) {
     }
 
     close(wesPipe);
+    close(PfcSwitchPipe);
 
     return 0;
 }
@@ -142,7 +150,7 @@ int main(int argc, const char *argv[]) {
  */
 
 int getErrorInfo(char *error) {
-    unsigned int size = (unsigned int) string_length(error);
+    int size = (int) strlen(error);
 
     int result = 0;
     char *endPointer = &error[size-1];

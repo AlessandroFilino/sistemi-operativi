@@ -19,7 +19,7 @@ FILE *openFile(const char* filename, const char* mode) {
     if (fp == NULL) {
         //TODO come gestire gli errori?
 
-        fprintf(stderr, "File non trovato\n");
+        fprintf(stderr, "File non trovato: %s\n", filename);
         exit(EXIT_FAILURE);
     }
 
@@ -27,11 +27,11 @@ FILE *openFile(const char* filename, const char* mode) {
 }
 
 int readLine(int fd, char *buffer, char delimiter) {
-    int n;
+    int n = 0;
     int count = 0;
 
     do { /* Read characters until ’\0’ or end-of-input */
-        n = read (fd, buffer, 1); /* Read one character */
+        n = read(fd, buffer, 1); /* Read one character */
         count += n;
     } while (n > 0 && *buffer++ != delimiter);
 
@@ -57,6 +57,7 @@ int createChild(int (*execv_function)(const char*, char* const*), char *filename
     return pid;
 }
 
+//TODO inserire i permessi come parametro
 void createPipe(char *pipename) {
     unlink(pipename);
     mknod(pipename, S_IFIFO, 0);
@@ -67,11 +68,10 @@ int connectPipe(char *pipename, int mode) {
     int fd;
 
     do {
+        usleep((1 * 1000) * 400); //400 millisecondi
+        printf("trying to connect...\n");
+
         fd = open(pipename, mode);
-        if (fd == -1) {
-            printf("trying to connect...\n");
-            usleep((1 * 1000) * 400); //400 millisecondi
-        }
     } while (fd == -1);
     printf("connected!\n");
 
@@ -89,12 +89,12 @@ int createServerAF_UNIXSocket(char *socketname, int maximumConnections, struct s
     *clientSockAddrPtr = (struct sockaddr*) &clientUNIXAddress;
     *clientLen = sizeof (clientUNIXAddress);
 
-    serverFd = socket (AF_UNIX, SOCK_STREAM, DEFAULT_PROTOCOL);
+    serverFd = socket(AF_UNIX, SOCK_STREAM, DEFAULT_PROTOCOL);
     serverUNIXAddress.sun_family = AF_UNIX; // Set domain type
-    strcpy (serverUNIXAddress.sun_path, socketname); // Set name
-    unlink (socketname); // Remove file if it already exists
-    bind (serverFd, serverSockAddrPtr, serverLen);// Create file
-    listen (serverFd, maximumConnections); // Maximum pending connection length
+    strcpy(serverUNIXAddress.sun_path, socketname); // Set name
+    unlink(socketname); // Remove file if it already exists
+    bind(serverFd, serverSockAddrPtr, serverLen);// Create file
+    listen(serverFd, maximumConnections); // Maximum pending connection length
 
     return serverFd;
     /*
@@ -119,16 +119,15 @@ int createServerAF_UNIXSocket(char *socketname, int maximumConnections, struct s
      */
 }
 
-int createClientAF_UNIXSocket(char *socketname, struct sockaddr **serverSockAddrPtr, int unsigned *serverLen) {
+int createClientAF_UNIXSocket(char *socketname, struct sockaddr_un* serverUNIXAddress, struct sockaddr **serverSockAddrPtr, int unsigned *serverLen) {
     int clientFd;
-    struct sockaddr_un serverUNIXAddress; //Server address
 
-    *serverSockAddrPtr = (struct sockaddr*) &serverUNIXAddress;
-    *serverLen = sizeof (serverUNIXAddress);
+    *serverSockAddrPtr = (struct sockaddr*) serverUNIXAddress;
+    *serverLen = sizeof(*serverUNIXAddress);
 
-    clientFd = socket (AF_UNIX, SOCK_STREAM, DEFAULT_PROTOCOL);
-    serverUNIXAddress.sun_family = AF_UNIX; //server domain type
-    strcpy (serverUNIXAddress.sun_path, socketname); //server name
+    clientFd = socket(AF_UNIX, SOCK_STREAM, DEFAULT_PROTOCOL);
+    (*serverUNIXAddress).sun_family = AF_UNIX; //server domain type
+    strcpy((*serverUNIXAddress).sun_path, socketname); //server name
 
     return clientFd;
 
@@ -150,11 +149,10 @@ void connectSocket(int clientFd, const struct sockaddr* serverSockAddrPtr, sockl
     int result;
 
     do {
+        usleep((1 * 1000) * 400); //400 millisecondi
+        printf("trying to connect...\n");
+
         result = connect(clientFd, serverSockAddrPtr, serverLen);
-        if (result == -1) {
-            printf("trying to connect...\n");
-            usleep((1 * 1000) * 400); //400 millisecondi
-        }
     } while(result == -1);
     printf("connected!\n");
 }
@@ -176,17 +174,17 @@ int numberOfDigits(int value) {
 }
 
 enum boolean tokenize(char *string, char *separator, int tokenNumber, ...) {
-    char (*token)[];
+    char (*argument)[];
     char *temp = string;
 
-    va_list listOftokens;
-    va_start(listOftokens, tokenNumber);
+    va_list listOfArgs;
+    va_start(listOfArgs, tokenNumber);
 
     for(int i=0; i<tokenNumber; i++) {
-        token = va_arg(listOftokens, char (*)[]);
-        strcpy(*token, strtok(temp, separator));
+        argument = va_arg(listOfArgs, char (*)[]);
+        strcpy(*argument, strtok(temp, separator));
 
-        if(token == NULL) {
+        if(argument == NULL) {
             return FALSE;
         }
 
@@ -195,7 +193,7 @@ enum boolean tokenize(char *string, char *separator, int tokenNumber, ...) {
         }
     }
 
-    va_end(listOftokens);
+    va_end(listOfArgs);
 
     return TRUE;
 }

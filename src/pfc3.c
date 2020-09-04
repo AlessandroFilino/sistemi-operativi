@@ -23,10 +23,10 @@ int main(int argc, const char * argv[]) {
     signal(SIGSTOP, &signalHandler);
 
     //TODO char *filename_g18 = argv[1];
-    char *filename_g18 = "../sistemioperativi/doc/G18.txt";
+    char *filename_g18 = "../doc/G18.txt";
     FILE *fp_g18 = openFile(filename_g18, "r");
 
-    last_read = open(FILENAME_LAST_READ, O_CREAT | O_RDWR);
+    last_read = open(FILENAME_LAST_READ, O_CREAT | O_RDWR, 0660);
     changePointerPosition(fp_g18, last_read);
 
     FILE *fpTransducers = openFile(FILENAME_PFC3_FILE, "w");
@@ -36,7 +36,7 @@ int main(int argc, const char * argv[]) {
 
     while(read != -1) {
         //TODO usare sleep(1)
-        usleep((1 * 1000) * 1000); //1000 millisecondi
+        usleep((1 * 1000) * 1000); //1000 millisecondi = 1 secondo
 
         read = exe(fd_fpTransducers, fp_g18, last_read, &previousLatitude, &previousLongitude, &PFC3_sigusr, &PFC3_sigstop);
         fflush(fpTransducers);

@@ -27,12 +27,12 @@ void addLastRead(int fd_last_read, long current_position) {
     /* buffer_position è un buffer che contiene la posizione letta da last_read sottoforma di stringa */
     char buffer_position[MAX_G18_FILE_LENGTH_DIGITS] = {0};
 
-    readLine(fd_last_read, buffer_position, EOF);
-    //TODO al posto di strtol usare
+    int read = readLine(fd_last_read, buffer_position, EOF);
     long last_read_position = strtol(buffer_position, NULL, 10);
 
-    if(current_position > last_read_position) {
-        dprintf(fd_last_read, "%ld", current_position);
+    //TODO gestire errore read == -1 (o in generale se read < 0)
+    if(read == 0 || current_position > last_read_position) {
+        //dprintf(fd_last_read, "%ld", current_position);
     }
 }
 
@@ -44,7 +44,7 @@ void changePointerPosition(FILE *fp_g18, int last_read) {
 
     if(bytes != 0) {
         position = strtol(buffer_position, NULL, 10);
-        fseek(fp_g18, position, SEEK_SET);
+        //fseek(fp_g18, position, SEEK_SET);
     }
 }
 
@@ -162,12 +162,13 @@ int exe(int fd_pfcToTransducers, FILE *fp_g18, int last_read, double *previousLa
      * lo spazio per contenere il carattere
      * del segno
      */
+    //TODO la velcita può essere negativa?
     if (velocity < 0) {
         messageLength++;
     }
 
-    char *message = malloc(sizeof(char) * (messageLength + 1)); //+1 per il carattere di fine stringa
-    int result = snprintf(message, sizeof(char) * (messageLength + 1), "%.2f", velocity);
+    char *message = malloc(sizeof(char) * (messageLength + 1 + 1)); //+2 per il carattere \n e poi di \0 (fine stringa)
+    int result = snprintf(message, sizeof(char) * (messageLength + 1 + 1), "%.2f\n", velocity);
 
     if (result < 0) {
         return -1;

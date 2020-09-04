@@ -31,7 +31,7 @@ int createChild(int (*execv_function)(const char*, char* const*), char *filename
 void createPipe(char *pipename);
 int connectPipe(char *pipename, int mode);
 int createServerAF_UNIXSocket(char *socketname, int maximumConnections, struct sockaddr **clientSockAddrPtr, int unsigned *clientLen);
-int createClientAF_UNIXSocket(char *socketname, struct sockaddr **serverSockAddrPtr, int unsigned *serverLen);
+int createClientAF_UNIXSocket(char *socketname, struct sockaddr_un* serverUNIXAddress, struct sockaddr **serverSockAddrPtr, int unsigned *serverLen);
 void connectSocket(int clientFd, const struct sockaddr* serverSockAddrPtr, socklen_t serverLen);
 void setFileFlags(int fd, unsigned int newFlags);
 
