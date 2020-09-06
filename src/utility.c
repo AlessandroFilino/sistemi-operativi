@@ -173,16 +173,21 @@ int numberOfDigits(int value) {
     return digits;
 }
 
+void removeLastChar(char *string) {
+    unsigned long length = strlen(string);
+    *(string + (length-1)) = 0;
+}
+
 enum boolean tokenize(char *string, char *separator, int tokenNumber, ...) {
-    char (*argument)[];
+    char *argument;
     char *temp = string;
 
     va_list listOfArgs;
     va_start(listOfArgs, tokenNumber);
 
     for(int i=0; i<tokenNumber; i++) {
-        argument = va_arg(listOfArgs, char (*)[]);
-        strcpy(*argument, strtok(temp, separator));
+        argument = va_arg(listOfArgs, char *);
+        strcpy(argument, strtok(temp, separator));
 
         if(argument == NULL) {
             return FALSE;

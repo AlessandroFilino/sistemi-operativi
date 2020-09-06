@@ -26,7 +26,7 @@ int main(int argc, const char * argv[]) {
     //pfc2
     int serverFd, clientFd;
     unsigned int clientLen;
-    struct sockaddr* clientSockAddrPtr;//Ptr to client address
+    struct sockaddr* clientSockAddrPtr;
 
     serverFd = createServerAF_UNIXSocket(FILENAME_PFC2_SOCKET, MAXIMUM_CONNECTIONS, &clientSockAddrPtr, &clientLen);
     clientFd = accept(serverFd, clientSockAddrPtr, &clientLen);
@@ -39,6 +39,18 @@ int main(int argc, const char * argv[]) {
     int fd_PFC3File = open(FILENAME_PFC3_FILE, O_RDONLY | O_CREAT, 0660);
     FILE *speedPFC3Log = openFile(FILENAME_SPEEDPFC3_LOG, "w");
     char velocita_pfc3[10] = {0};
+
+    /*
+     * I messaggi ricevuti da pfc1/2/3 contengono un carattere '\n'
+     * che permette di distinguere un messaggio dall'altro.
+     * Dovendo scrivere i valori delle velocità nei file di log,
+     * è opportuno utilizzare anche in questo caso un carattere
+     * che separi tali valori per rendere i file di log leggibili.
+     * Abbiamo deciso di usare il medesimo carattere, ovvero MESSAGES_SEPARATOR.
+     * Successivamente, il while deve controllare se velocita_pfc1/2/3 contengono
+     * la stringa di terminazione, perciò è necessario rimuovere il carattere
+     * MESSAGES_SEPARATOR
+     */
 
     while((strcmp(velocita_pfc1, APPLICATION_ENDED_MESSAGE) != 0) ||
             (strcmp(velocita_pfc2, APPLICATION_ENDED_MESSAGE) != 0) ||
@@ -53,44 +65,52 @@ int main(int argc, const char * argv[]) {
          *       le stringhe velocita_pfc1, velocita_pfc2,
          *       velocita_pfc3 perchè, leggendo da un buffer vuoto,
          *       si setteranno a zero da sole (?)
+         *
+         * TODO: però forse leggendo da un buffer vuoto, velocita_pfc1,
+         *       velocita_pfc2, velocita_pfc3 vengono sporcate con valori
+         *       rimasti in memoria? Se si, ha senso lasciare il memset fuori
+         *       dall'if, altrimenti va inserito dentro l'if
          */
 
         //pfc1
-        numberOfCharsRead = readLine(fd_PFC1pipe, velocita_pfc1, '\n');
+        numberOfCharsRead = readLine(fd_PFC1pipe, velocita_pfc1, MESSAGES_SEPARATOR);
         //printf("pfc1 - transducer: %s (%d)\n", velocita_pfc1, tempo);
         if(numberOfCharsRead > 0) {
-            printf("pfc1 - transducer: %s (%d)\n", velocita_pfc1, tempo);
+            printf("pfc1 - transducer: (%d) %s", tempo, velocita_pfc1);
             fflush(stdout);
 
-            //TODO rimuovere '/n' dalla stringa letta da fd_PFC1pipe
-            fprintf(speedPFC1Log, "%s\n", velocita_pfc1);
+            fprintf(speedPFC1Log, "%s", velocita_pfc1);
             fflush(speedPFC1Log);
+
+            removeLastChar(velocita_pfc1);
         }
         memset(velocita_pfc1, '\0', sizeof(char) * 10);
 
         //pfc2
-        numberOfCharsRead = readLine(clientFd, velocita_pfc2, '\n');
+        numberOfCharsRead = readLine(clientFd, velocita_pfc2, MESSAGES_SEPARATOR);
         //printf("pfc2 - transducer: %s (%d)\n", velocita_pfc2, tempo);
         if(numberOfCharsRead > 0) {
-            printf("pfc2 - transducer: %s (%d)\n", velocita_pfc2, tempo);
+            printf("pfc2 - transducer: (%d) %s", tempo, velocita_pfc2);
             fflush(stdout);
 
-            //TODO rimuovere '/n' dalla stringa letta da clientFd
-            fprintf(speedPFC2Log, "%s\n", velocita_pfc2);
+            fprintf(speedPFC2Log, "%s", velocita_pfc2);
             fflush(speedPFC2Log);
+
+            removeLastChar(velocita_pfc2);
         }
         memset(velocita_pfc2, '\0', sizeof(char) * 10);
 
         //pfc3
-        numberOfCharsRead = readLine(fd_PFC3File, velocita_pfc3, '\n');
+        numberOfCharsRead = readLine(fd_PFC3File, velocita_pfc3, MESSAGES_SEPARATOR);
         //printf("pfc3 - transducer: %s (%d)\n", velocita_pfc3, tempo);
         if(numberOfCharsRead > 0) {
-            printf("pfc3 - transducer: %s (%d)\n", velocita_pfc3, tempo);
+            printf("pfc3 - transducer: (%d) %s\n", tempo, velocita_pfc3);
             fflush(stdout);
 
-            //TODO rimuovere '/n' dalla stringa letta da fd_PFC3File
-            fprintf(speedPFC3Log, "%s\n", velocita_pfc3);
+            fprintf(speedPFC3Log, "%s", velocita_pfc3);
             fflush(speedPFC3Log);
+
+            removeLastChar(velocita_pfc3);
         }
         memset(velocita_pfc3, '\0', sizeof(char) * 10);
 

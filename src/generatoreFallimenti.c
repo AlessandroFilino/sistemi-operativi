@@ -14,18 +14,19 @@ int main(int argc, const char * argv[]) {
     srand(time(NULL));
 
     int pfc;
-    int length;
-    u_4 fallimenti;
+    int numberOfCharsRead;
+    u_4 fallimenti; fallimenti.value = 0;
     enum boolean terminated = FALSE;
-    //int signals[4] = {SIGSTOP, SIGINT, SIGCONT, SIGUSR1};
 
-    int fd_pipe = connectPipe(FILENAME_PFCSWITCH_PIPE, O_RDONLY);
+    createPipe(FILENAME_GENERATOREFALLIMENTI_PIPE);
+    int fd_pipe = open(FILENAME_GENERATOREFALLIMENTI_PIPE, O_RDONLY | O_NONBLOCK);
+
     FILE *failures = fopen(FILENAME_FAILURES_LOG, "w");
-    char buffer_newPid[PFCDISCONNECTEDSWITCH_MESSAGE_MAX_LENGTH + 1] = {0};
+    char buffer_newPid[PFCDISCONNECTEDSWITCH_MESSAGE_MAX_LENGTH + 1 + 1] = {0};
 
-    const char *pfc1_pid = argv[1];
-    const char *pfc2_pid = argv[2];
-    const char *pfc3_pid = argv[3];
+    const char *pfc1_pid = "1"; //= argv[1];
+    const char *pfc2_pid = "1"; //= argv[2];
+    const char *pfc3_pid = "1"; //= argv[3];
 
     int pfcProcessPid[3] = {
             (int) strtol(pfc1_pid, NULL, 10),
@@ -40,35 +41,42 @@ int main(int argc, const char * argv[]) {
         fallimenti = calcoloProb();
 
         if (fallimenti.value & 1u) {
-            /*
-             * SIGSTOP = sospensione da dentro un programma
-             */
-            kill(pfcProcessPid[pfc], SIGSTOP);
+            char message[] = concat(GENERATORE_FALLIMENTI_SIGSTOP, "\n");
+
+            //SIGSTOP = sospensione da dentro un programma
+            //kill(pfcProcessPid[pfc], SIGSTOP);
+            fprintf(failures, "%s", message);
         }
 
         if (fallimenti.value & 2u) {
-            /*
-             * SIGINT = quando l'utente digits ctrl-c
-             */
-            kill(pfcProcessPid[pfc], SIGINT);
+            char message[] = concat(GENERATORE_FALLIMENTI_SIGINT, "\n");
+
+            //SIGINT = quando l'utente digita ctrl-c
+            //kill(pfcProcessPid[pfc], SIGINT);
+            fprintf(failures, "%s", message);
         }
 
         if (fallimenti.value & 4u) {
-            /*
-             * SIGCONT = riprende l'esecuzione di un programma dopo la sospensione
-             */
-            kill(pfcProcessPid[pfc], SIGCONT);
+            char message[] = concat(GENERATORE_FALLIMENTI_SIGCONT, "\n");
+
+            //SIGCONT = riprende l'esecuzione di un programma dopo la sospensione
+            //kill(pfcProcessPid[pfc], SIGCONT);
+            fprintf(failures, "%s", message);
         }
 
         if (fallimenti.value & 8u) {
-            /*
-             * SIGUSR1 = segnale definito dall'utente
-             */
-            kill(pfcProcessPid[pfc], SIGUSR1);
+            char message[] = concat(GENERATORE_FALLIMENTI_SIGUSR1, "\n");
+
+            //SIGUSR1 = segnale definito dall'utente
+            //kill(pfcProcessPid[pfc], SIGUSR1);
+            fprintf(failures, "%s", message);
         }
 
-        length = read(fd_pipe, buffer_newPid, PFCDISCONNECTEDSWITCH_MESSAGE_MAX_LENGTH);
-        if(length > 0) {
+        numberOfCharsRead = readLine(fd_pipe, buffer_newPid, MESSAGES_SEPARATOR);
+
+        if(numberOfCharsRead > 0) {
+            removeLastChar(buffer_newPid);
+
             if(strcmp(buffer_newPid, APPLICATION_ENDED_MESSAGE) == 0) {
                 terminated = TRUE;
             } else {
@@ -77,6 +85,8 @@ int main(int argc, const char * argv[]) {
 
                 readNewFd(buffer_newPid, &pfcId, &newFd);
                 pfcProcessPid[pfcId] = newFd;
+
+                memset(buffer_newPid, '\0', sizeof(char) * strlen(buffer_newPid));
             }
         }
     }
@@ -110,23 +120,17 @@ u_4 calcoloProb() {
 }
 
 void readNewFd(char *buffer_newPid, int *pfcId, int *newPid) {
-    char temp_pfcId[10];
-    char temp_newPid[10];
-    char *temp[2] = {temp_pfcId, temp_newPid};
-
-    tokenize(buffer_newPid, PFCDISCONNECTEDSWITCH_SEPARATOR, 2, temp);
-
-    *pfcId = (int) strtol(temp[0], NULL, 10);
-    *newPid = (int) strtol(temp[1], NULL, 10);
-
     /*
-        char *temp;
-        temp = strtok(buffer_newPid, PFCDISCONNECTEDSWITCH_SEPARATOR);
-        *pfcId = (int) strtol(temp, NULL, 10);
+     * TODO cambiare la lunghezza di temp_pfcId e temp_newPid
+     *      considerando che pfcId può essere 1, 2 o 3 e che
+     *      newPid magari potrebbe raggiungere massimo 5 cifre.
+     *      (Quanto può essere lungo un pid?)
+     */
+    char temp_pfcId[10] = {0};
+    char temp_newPid[10] = {0};
 
-        temp = strtok(NULL, PFCDISCONNECTEDSWITCH_SEPARATOR);
-        *newPid = (int) strtol(temp, NULL, 10);
-    */
+    tokenize(buffer_newPid, PFCDISCONNECTEDSWITCH_SEPARATOR, 2, temp_pfcId, temp_newPid);
+
+    *pfcId = (int) strtol(temp_pfcId, NULL, 10);
+    *newPid = (int) strtol(temp_newPid, NULL, 10);
 }
-
-

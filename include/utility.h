@@ -12,6 +12,7 @@
 #define remove_files_from(PATHDIR) "[ $(ls " PATHDIR " | wc -l) -gt 0 ] && rm " PATHDIR "* || :"
 #define concat(DEST, S)            DEST S
 
+
 /*
  * array_length considera anche il carattere di fine stringa
  * perciò dobbiamo sottrarre 1 per il calcolo della lunghezza
@@ -22,6 +23,7 @@
 
 #define DEFAULT_PROTOCOL 0
 
+//TODO FALSE=0 e TRUE=1 ?
 enum boolean {FALSE, TRUE};
 
 FILE *openFile(const char* filename, const char* mode);
@@ -36,6 +38,7 @@ void connectSocket(int clientFd, const struct sockaddr* serverSockAddrPtr, sockl
 void setFileFlags(int fd, unsigned int newFlags);
 
 int numberOfDigits(int value);
+void removeLastChar(char *string);
 enum boolean tokenize(char *string, char *separator, int tokenNumber, ...);
 
 #endif

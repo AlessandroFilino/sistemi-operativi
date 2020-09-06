@@ -25,6 +25,12 @@ int main(int argc, const char* argv[]) {
         exit(EXIT_FAILURE);
     }
 
+    //int fd_p1 = open(p1, O_WRONLY | O_NONBLOCK, 0660);
+    //printf("(%s) %d\n", strerror(errno), ENXIO);
+
+    //int fd_p2 = open(p2, O_WRONLY | O_NONBLOCK, 0660);
+    //printf("(%s)\n", strerror(errno));
+
     /*char *pfcDisconnectedSwitch_argv[] = {"pfcDisconnectedSwitch", filename_G18, NULL};
     createChild(&execv, "pfcDisconnectedSwitch", pfcDisconnectedSwitch_argv);
 

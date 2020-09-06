@@ -9,7 +9,7 @@
 #include "../include/path.h"
 
 int main(int argc, const char *argv[]) {
-    int fd = connectPipe(FILENAME_WES_PIPE, O_WRONLY);
+    int wesPipe = connectPipe(FILENAME_WES_PIPE, O_WRONLY);
     FILE *status = openFile(FILENAME_STATUS_LOG, "w+");
 
     int speedPFC1Log = open(FILENAME_SPEEDPFC1_LOG, O_RDONLY | O_CREAT, 0660);
@@ -24,14 +24,39 @@ int main(int argc, const char *argv[]) {
     char bufferPFC2[string_length(APPLICATION_ENDED_MESSAGE) + 1] = {0};
     char bufferPFC3[string_length(APPLICATION_ENDED_MESSAGE) + 1] = {0};
 
+    int numberOfCharsRead = 0;
     enum boolean terminated = FALSE;
 
     while(!terminated) {
         sleep(1);
 
-        readLine(speedPFC1Log, bufferPFC1, '\n');
-        readLine(speedPFC2Log, bufferPFC2, '\n');
-        readLine(speedPFC3Log, bufferPFC3, '\n');
+        /*
+         * TODO: Come potrebbe succedere nel transducer, leggendo da un
+         *       file vuoto, bufferPFC1/2/3 vengono sporcati con valori
+         *       rimasti in memoria? Se si, ha senso usare il memset, altrimenti
+         *       non ce n'è bisogno
+         */
+
+        numberOfCharsRead = readLine(speedPFC1Log, bufferPFC1, MESSAGES_SEPARATOR);
+        if(numberOfCharsRead > 0) {
+            removeLastChar(bufferPFC1);
+        } else {
+            memset(bufferPFC1, '\0', sizeof(char) * string_length(APPLICATION_ENDED_MESSAGE));
+        }
+
+        numberOfCharsRead = readLine(speedPFC2Log, bufferPFC2, MESSAGES_SEPARATOR);
+        if(numberOfCharsRead > 0) {
+            removeLastChar(bufferPFC2);
+        } else {
+            memset(bufferPFC2, '\0', sizeof(char) * string_length(APPLICATION_ENDED_MESSAGE));
+        }
+
+        numberOfCharsRead = readLine(speedPFC3Log, bufferPFC3, MESSAGES_SEPARATOR);
+        if(numberOfCharsRead > 0) {
+            removeLastChar(bufferPFC3);
+        } else {
+            memset(bufferPFC3, '\0', sizeof(char) * string_length(APPLICATION_ENDED_MESSAGE));
+        }
 
         if((strcmp(bufferPFC1, APPLICATION_ENDED_MESSAGE) == 0) ||
            (strcmp(bufferPFC2, APPLICATION_ENDED_MESSAGE) == 0) ||
@@ -42,26 +67,21 @@ int main(int argc, const char *argv[]) {
             speedPFC2 = strtod(bufferPFC2, NULL);
             speedPFC3 = strtod(bufferPFC3, NULL);
 
-            /*
-             * TODO: controllare che speedPFC1, speedPFC2
-             *       e speedPFC3 abbiano valori diversi da '\0'
-             */
-
             if (speedPFC1 == speedPFC2) {
                 if (speedPFC1 == speedPFC3) {
-                    char *message = concat(WES_MESSAGE_SUCCESS, "\n");
+                    char message[] = concat(WES_MESSAGE_SUCCESS, "\n");
                     int messageLength = string_length(WES_MESSAGE_SUCCESS) + 1;
 
                     printf("(%.2f, %.2f, %.2f) - %s", speedPFC1, speedPFC2, speedPFC3, message);
-                    fwrite(message, sizeof(char), messageLength, status);
-                    write(fd, message, sizeof(char) * messageLength);
+                    fprintf(status, "%s", message);
+                    write(wesPipe, message, sizeof(char) * messageLength);
                 } else {
                     char *message = concat(WES_MESSAGE_PFC3_ERROR, "\n");
                     int messageLength = string_length(WES_MESSAGE_PFC3_ERROR) + 1;
 
                     printf("%s", message);
-                    fwrite(message, sizeof(char), messageLength, status);
-                    write(fd, message, sizeof(char) * messageLength);
+                    fprintf(status, "%s", message);
+                    write(wesPipe, message, sizeof(char) * messageLength);
                 }
             } else {
                 if (speedPFC1 == speedPFC3) {
@@ -69,22 +89,22 @@ int main(int argc, const char *argv[]) {
                     int messageLength = string_length(WES_MESSAGE_PFC2_ERROR) + 1;
 
                     printf("%s", message);
-                    fwrite(message, sizeof(char), messageLength, status);
-                    write(fd, message, sizeof(char) * messageLength);
+                    fprintf(status, "%s", message);
+                    write(wesPipe, message, sizeof(char) * messageLength);
                 } else if (speedPFC2 == speedPFC3) {
                     char *message = concat(WES_MESSAGE_PFC1_ERROR, "\n");
                     int messageLength = string_length(WES_MESSAGE_PFC1_ERROR) + 1;
 
                     printf("%s", message);
-                    fwrite(message, sizeof(char), messageLength, status);
-                    write(fd, message, sizeof(char) * messageLength);
+                    fprintf(status, "%s", message);
+                    write(wesPipe, message, sizeof(char) * messageLength);
                 } else {
                     char *message = concat(WES_MESSAGE_EMERGENCY, "\n");
                     int messageLength = string_length(WES_MESSAGE_EMERGENCY) + 1;
 
                     printf("%s", message);
-                    fwrite(message, sizeof(char), messageLength, status);
-                    write(fd, message, sizeof(char) * messageLength);
+                    fprintf(status, "%s", message);
+                    write(wesPipe, message, sizeof(char) * messageLength);
                 }
             }
         }
@@ -95,12 +115,12 @@ int main(int argc, const char *argv[]) {
 
     printf("%s", message);
     fwrite(message, sizeof(char), messageLength, status);
-    write(fd, APPLICATION_ENDED_MESSAGE, sizeof(char) * string_length(APPLICATION_ENDED_MESSAGE));
+    write(wesPipe, APPLICATION_ENDED_MESSAGE, sizeof(char) * string_length(APPLICATION_ENDED_MESSAGE));
 
     close(speedPFC1Log);
     close(speedPFC2Log);
     close(speedPFC3Log);
-    close(fd);
+    close(wesPipe);
     fclose(status);
 
     return 0;
