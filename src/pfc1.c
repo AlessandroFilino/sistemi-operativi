@@ -2,7 +2,6 @@
 #include <unistd.h>
 #include <fcntl.h>
 #include <signal.h>
-#include <string.h>
 #include "../include/utility.h"
 #include "../include/pfc.h"
 #include "../include/path.h"
@@ -13,9 +12,7 @@ enum boolean PFC1_sigRestart;
 void signalHandler(int signal);
 
 int main(int argc, const char * argv[]) {
-    int fd_pipe;
-    int last_read;
-    ssize_t read = 0;
+    ssize_t numberOfCharsRead = 0;
     double previousLatitude = 0;
     double previousLongitude = 0;
 
@@ -26,26 +23,40 @@ int main(int argc, const char * argv[]) {
     char *filename_g18 = "../doc/G18.txt";
     FILE *fp_g18 = openFile(filename_g18, "r");
 
-    last_read = open(FILENAME_LAST_READ, O_CREAT | O_RDWR, 0660);
-    changePointerPosition(fp_g18, last_read);
+    /*
+     * last_read.txt va aperto in "r+" e non in "w+"
+     * perchè altrimenti viene cancellato il contenuto
+     * del file se il file è già esistente (non andrebbe bene
+     * perchè se un processo viene rimosso e pfcDisconnectedSwitch lo
+     * ricrea, a quel punto il processo, aprendo last_read.txt in "w+"
+     * cancellerebbe il contenuto e non potrebbe riprendere a leggere
+     * dall'ultima lettura)
+     */
+    FILE *lastRead = openFile(FILENAME_LAST_READ, "r+");
+    changePointerPosition(fp_g18, lastRead);
 
     //TODO unlink va rimosso
     //unlink(FILENAME_PFC1_PIPE);
-    fd_pipe = connectPipe(FILENAME_PFC1_PIPE, O_WRONLY);
+    int transducersPipe = connectPipe(FILENAME_PFC1_PIPE, O_WRONLY);
 
-    read = setPreviousGeographicCoordinates(fp_g18, &previousLatitude, &previousLongitude);
+    numberOfCharsRead = setPreviousGeographicCoordinates(fp_g18, &previousLatitude, &previousLongitude);
 
-    while(read != -1) {
+    while(numberOfCharsRead != -1) {
         //TODO usare sleep(1)
-        usleep((1 * 1000) * 1000); //1000 millisecondi = 1 secondo
+        usleep((1 * 1000) * 100); //1000 millisecondi = 1 secondo
 
-        read = exe(fd_pipe, fp_g18, last_read, &previousLatitude, &previousLongitude, &PFC1_sigUsr, &PFC1_sigRestart);
+        numberOfCharsRead = exe(transducersPipe, fp_g18, lastRead, &previousLatitude, &previousLongitude, &PFC1_sigUsr, &PFC1_sigRestart);
     }
 
-    write(fd_pipe, APPLICATION_ENDED_MESSAGE, string_length(APPLICATION_ENDED_MESSAGE));
+    char message[] = concat(APPLICATION_ENDED_MESSAGE, "\n");
+    int messageLength = string_length(APPLICATION_ENDED_MESSAGE) + 1;
+
+    write(transducersPipe, message, sizeof(char) * messageLength);
+    printf("%s\n", message);
 
     fclose(fp_g18);
-    close(fd_pipe);
+    fclose(lastRead);
+    close(transducersPipe);
 
     return 0;
 }

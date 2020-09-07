@@ -1,7 +1,7 @@
 #ifndef pfc_h
 #define pfc_h
 
-#define TEMPO 1 //1 secondo
+#define TEMPO 1 //1 secondo espresso in ore
 #define RAGGIO_TERRA_METRI 6367863
 #define NMEA_FORMAT "$GPGLL"
 #define MAX_SPEED_DIGITS 5
@@ -12,8 +12,8 @@
 #include "utility.h"
 
 void setSignalStatus(int signalReceived, enum boolean *PFC_sigUsr, enum boolean *PFC_sigRestart);
-void addLastRead(int fd_last_read, long current_position);
-void changePointerPosition(FILE *fp_g18, int last_read);
+void addLastRead(FILE *lastRead, long current_position);
+void changePointerPosition(FILE *fp_g18, FILE *lastRead);
 int setPreviousGeographicCoordinates(FILE *fp_g18, double *previousLatitude, double *previousLongitude);
 
 double changeSpeed(double speed);
@@ -23,6 +23,6 @@ double getDistance(double latitude, double longitude, double previousLatitude, d
 double degreeToRadian(double degree);
 double getVelocity(double space, int time);
 
-int exe(int fd_pfcToTransducers, FILE *fp_g18, int last_read, double *previousLatitude, double *previousLongitude, enum boolean *sigUsr, enum boolean *sigRestart);
+int exe(int fd_pfcToTransducers, FILE *fp_g18, FILE *last_read, double *previousLatitude, double *previousLongitude, enum boolean *sigUsr, enum boolean *sigRestart);
 
 #endif

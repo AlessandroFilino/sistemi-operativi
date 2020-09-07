@@ -23,28 +23,32 @@ void setSignalStatus(int signalReceived, enum boolean *PFC_sigUsr, enum boolean 
 }
 
 //TODO convertire questa funzione in una generica scrittura sul file e inserirla in utility.c
-void addLastRead(int fd_last_read, long current_position) {
-    /* buffer_position è un buffer che contiene la posizione letta da last_read sottoforma di stringa */
-    char buffer_position[MAX_G18_FILE_LENGTH_DIGITS] = {0};
+void addLastRead(FILE *lastRead, long current_position) {
+    /* bufferPosition è un buffer che contiene la posizione letta da last_read sottoforma di stringa */
+    char bufferPosition[MAX_G18_FILE_LENGTH_DIGITS] = {0};
 
-    int read = readLine(fd_last_read, buffer_position, EOF);
-    long last_read_position = strtol(buffer_position, NULL, 10);
+    unsigned long numberOfCharsRead = fread(bufferPosition, sizeof(char), MAX_G18_FILE_LENGTH_DIGITS, lastRead);
+    long lastReadPosition = strtol(bufferPosition, NULL, 10);
 
     //TODO gestire errore read == -1 (o in generale se read < 0)
-    if(read == 0 || current_position > last_read_position) {
-        //dprintf(fd_last_read, "%ld", current_position);
+    if(numberOfCharsRead == 0 || current_position > lastReadPosition) {
+        fseek(lastRead, 0, SEEK_SET);
+
+        fprintf(lastRead, "%ld", current_position);
+        fflush(lastRead);
     }
 }
 
-void changePointerPosition(FILE *fp_g18, int last_read) {
-    /* buffer_position è un buffer che contiene la posizione letta da last_read sottoforma di stringa */
-    char buffer_position[MAX_G18_FILE_LENGTH_DIGITS] = {0};
-    long position = 0;
-    int bytes = read(last_read, buffer_position, MAX_G18_FILE_LENGTH_DIGITS);
+void changePointerPosition(FILE *fp_g18, FILE *lastRead) {
+    /* buffer_position è un buffer che contiene la posizione letta da lastRead sottoforma di stringa */
+    char bufferPosition[MAX_G18_FILE_LENGTH_DIGITS] = {0};
 
-    if(bytes != 0) {
-        position = strtol(buffer_position, NULL, 10);
-        //fseek(fp_g18, position, SEEK_SET);
+    long position = 0;
+    unsigned long numberOfCharsRead = fread(bufferPosition, sizeof(char), MAX_G18_FILE_LENGTH_DIGITS, lastRead);
+
+    if(numberOfCharsRead > 0) {
+        position = strtol(bufferPosition, NULL, 10);
+        fseek(fp_g18, position, SEEK_SET);
     }
 }
 
@@ -87,24 +91,47 @@ ssize_t readCorrectLine(char *buffer, size_t bufferLength, FILE *fp) {
 void getGeographicCoordinates(char* line, double* latitude, double* longitude) {
     //TODO usare la funzione tokenize di utility.c
     char* tok;
+    char latitudeLocation[2] = {0};
+    char longitudeLocation[2] = {0};
+
     tok = strtok(line, SEPARATOR_TOKENIZER);
 
     //TODO gestire errore
-    if(tok == NULL){
+    if(tok == NULL) {
         fprintf(stderr, "Errore\n");
     }
 
-    *latitude = strtod(strtok(NULL, SEPARATOR_TOKENIZER), NULL);
-    strtok(NULL, SEPARATOR_TOKENIZER); //direzioneLatitudine (da scartare)
-    *longitude = strtod(strtok(NULL, SEPARATOR_TOKENIZER), NULL);
-    strtok(NULL, SEPARATOR_TOKENIZER); //direzioneLongitudine (da scartare)
+    //char temp_latitude[50] = {0}
+    //char temp_longitude[50] = {0}
+    //tokenize(line, SEPARATOR_TOKENIZER, 3, temp_latitude, direzioneLatitudine, temp_longitude, direzioneLongitudine);
+
+    /*
+     * I valori di Latitudine e longitudine vengono divisi per 100
+     * perchè la funzione getDistance() accetta valori in quel formato
+     *
+     * I gradi presi rispetto a Sud (cioè 'S') e a Ovest (cioè 'W')
+     * devono essere negativi per calcolare correttamente la distanza
+     */
+    *latitude = strtod(strtok(NULL, SEPARATOR_TOKENIZER), NULL)/100;
+    strcpy(latitudeLocation, strtok(NULL, SEPARATOR_TOKENIZER));
+    if(latitudeLocation[0] == 'S' || latitudeLocation[0] == 'W') {
+        *latitude *= -1;
+    }
+
+    *longitude = strtod(strtok(NULL, SEPARATOR_TOKENIZER), NULL)/100;
+    strcpy(longitudeLocation, strtok(NULL, SEPARATOR_TOKENIZER));
+    if(longitudeLocation[0] == 'S' || longitudeLocation[0] == 'W') {
+        *longitude *= -1;
+    }
 }
 
 double degreeToRadian(double degree) {
-    return degree * M_PI / 180;
+    return degree * ((double) M_PI / 180);
 }
 
 double getDistance(double latitude, double longitude, double previousLatitude, double previousLongitude){
+    //TODO rinominare "dLat" in "differenceLatitude" e "dLon" in "differenceLongitude"?
+
     double dLat = degreeToRadian(latitude - previousLatitude);
     double dLon = degreeToRadian(longitude - previousLongitude);
     latitude = degreeToRadian(latitude);
@@ -122,7 +149,7 @@ double getVelocity(double space, int time){
     return space / time;
 }
 
-int exe(int fd_pfcToTransducers, FILE *fp_g18, int last_read, double *previousLatitude, double *previousLongitude, enum boolean *sigUsr, enum boolean *sigRestart) {
+int exe(int fd_pfcToTransducers, FILE *fp_g18, FILE *last_read, double *previousLatitude, double *previousLongitude, enum boolean *sigUsr, enum boolean *sigRestart) {
     double latitude;
     double longitude;
     double distance;
@@ -132,7 +159,7 @@ int exe(int fd_pfcToTransducers, FILE *fp_g18, int last_read, double *previousLa
     char *line = malloc(sizeof(char) * lineLength);
     ssize_t read = readCorrectLine(line, lineLength, fp_g18);
 
-    if (read != -1) {
+    if (read > 0) {
         getGeographicCoordinates(line, &latitude, &longitude);
         distance = getDistance(latitude, longitude, *previousLatitude, *previousLongitude);
         velocity = getVelocity(distance, TEMPO);
@@ -141,59 +168,59 @@ int exe(int fd_pfcToTransducers, FILE *fp_g18, int last_read, double *previousLa
             velocity = changeSpeed(velocity);
             *sigUsr = FALSE;
         }
-    } else {
-        velocity = -1;
-    }
 
-    int int_section = (int) velocity;
-    int digits = numberOfDigits(int_section);
+        int int_section = (int) velocity;
+        int digits = numberOfDigits(int_section);
 
-    /*
-     * size_t is an unsigned integer type of at least 16 bit.
-     * In questo caso, è necessario prevedere un buffer che contenga:
-     *      • tutte le cifre della parte intera del numero (digits)
-     *      • il punto che divide parte intera e parte decimale (1)
-     *      • le due cifre decimali (2)
-     */
-    size_t messageLength = digits + 1 + 2;
+        /*
+         * size_t is an unsigned integer type of at least 16 bit.
+         * In questo caso, è necessario prevedere un buffer che contenga:
+         *      • tutte le cifre della parte intera del numero (digits)
+         *      • il punto che divide parte intera e parte decimale (1)
+         *      • le due cifre decimali (2)
+         */
+        size_t messageLength = digits + 1 + 2;
 
-    /*
-     * se il numero è negativo va predisposto
-     * lo spazio per contenere il carattere
-     * del segno
-     */
-    //TODO la velcita può essere negativa?
-    if (velocity < 0) {
-        messageLength++;
-    }
+        /*
+         * se il numero è negativo va predisposto
+         * lo spazio per contenere il carattere
+         * del segno
+         */
+        //TODO la velcita può essere negativa solo se read == -1, giusto?
+        if (velocity < 0) {
+            messageLength++;
+        }
 
-    char *message = malloc(sizeof(char) * (messageLength + 1 + 1)); //+2 per il carattere \n e poi di \0 (fine stringa)
-    int result = snprintf(message, sizeof(char) * (messageLength + 1 + 1), "%.2f\n", velocity);
+        char *message = malloc(
+                sizeof(char) * (messageLength + 1 + 1)); //+2 per il carattere \n e poi di \0 (fine stringa)
+        int result = snprintf(message, sizeof(char) * (messageLength + 1 + 1), "%.2f\n", velocity);
 
-    if (result < 0) {
-        return -1;
-    }
+        if (result < 0) {
+            return -1;
+        }
 
-    /*
-     * TODO: sizeof(char) potrebbe essere eliminato in quanto
-     *       la write scrive su un file leggendo da una stringa
-     */
+        /*
+         * TODO: sizeof(char) potrebbe essere eliminato in quanto
+         *       la write scrive su un file leggendo da una stringa
+         */
 
-    write(fd_pfcToTransducers, message, sizeof(char) * (messageLength + 1));
-    printf("%s\n", message);
+        write(fd_pfcToTransducers, message, sizeof(char) * (messageLength + 1));
+        printf("%s", message);
 
-    if(*sigRestart) {
-        changePointerPosition(fp_g18, last_read);
-        setPreviousGeographicCoordinates(fp_g18, previousLatitude, previousLongitude);
-        *sigRestart = FALSE;
-    } else {
-        *previousLatitude = latitude;
-        *previousLongitude = longitude;
-        addLastRead(last_read, ftell(fp_g18));
+        if (*sigRestart) {
+            changePointerPosition(fp_g18, last_read);
+            setPreviousGeographicCoordinates(fp_g18, previousLatitude, previousLongitude);
+            *sigRestart = FALSE;
+        } else {
+            *previousLatitude = latitude;
+            *previousLongitude = longitude;
+            addLastRead(last_read, ftell(fp_g18));
+        }
+
+        free(message);
     }
 
     free(line);
-    free(message);
 
     return read;
 }

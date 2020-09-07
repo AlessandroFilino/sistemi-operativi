@@ -57,11 +57,18 @@ int createChild(int (*execv_function)(const char*, char* const*), char *filename
     return pid;
 }
 
-//TODO inserire i permessi come parametro
-void createPipe(char *pipename) {
-    unlink(pipename);
-    mknod(pipename, S_IFIFO, 0);
-    chmod(pipename, 0660);
+void createEmptyFile(char *filename, char *mode) {
+    fclose(openFile(filename, mode));
+}
+
+void createSpecialFile(char *filename, mode_t mode, mode_t permissions) {
+    unlink(filename);
+    mknod(filename, mode, 0);
+    chmod(filename, permissions);
+}
+
+void createPipe(char *pipename, mode_t permissions) {
+    createSpecialFile(pipename, S_IFIFO, permissions);
 }
 
 int connectPipe(char *pipename, int mode) {
@@ -178,7 +185,7 @@ void removeLastChar(char *string) {
     *(string + (length-1)) = 0;
 }
 
-enum boolean tokenize(char *string, char *separator, int tokenNumber, ...) {
+void tokenize(char *string, char *separator, int tokenNumber, ...) {
     char *argument;
     char *temp = string;
 
@@ -187,10 +194,9 @@ enum boolean tokenize(char *string, char *separator, int tokenNumber, ...) {
 
     for(int i=0; i<tokenNumber; i++) {
         argument = va_arg(listOfArgs, char *);
-        strcpy(argument, strtok(temp, separator));
 
-        if(argument == NULL) {
-            return FALSE;
+        if(argument != NULL) {
+            strcpy(argument, strtok(temp, separator));
         }
 
         if(i == 0) {
@@ -199,8 +205,6 @@ enum boolean tokenize(char *string, char *separator, int tokenNumber, ...) {
     }
 
     va_end(listOfArgs);
-
-    return TRUE;
 }
 
 

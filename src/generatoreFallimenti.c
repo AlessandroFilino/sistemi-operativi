@@ -18,10 +18,10 @@ int main(int argc, const char * argv[]) {
     u_4 fallimenti; fallimenti.value = 0;
     enum boolean terminated = FALSE;
 
-    createPipe(FILENAME_GENERATOREFALLIMENTI_PIPE);
+    createPipe(FILENAME_GENERATOREFALLIMENTI_PIPE, DEFAULT_PERMISSIONS);
     int fd_pipe = open(FILENAME_GENERATOREFALLIMENTI_PIPE, O_RDONLY | O_NONBLOCK);
 
-    FILE *failures = fopen(FILENAME_FAILURES_LOG, "w");
+    FILE *failures = openFile(FILENAME_FAILURES_LOG, "w");
     char buffer_newPid[PFCDISCONNECTEDSWITCH_MESSAGE_MAX_LENGTH + 1 + 1] = {0};
 
     const char *pfc1_pid = "1"; //= argv[1];
@@ -45,7 +45,7 @@ int main(int argc, const char * argv[]) {
 
             //SIGSTOP = sospensione da dentro un programma
             //kill(pfcProcessPid[pfc], SIGSTOP);
-            fprintf(failures, "%s", message);
+            fprintf(failures, message, pfc);
         }
 
         if (fallimenti.value & 2u) {
@@ -53,7 +53,7 @@ int main(int argc, const char * argv[]) {
 
             //SIGINT = quando l'utente digita ctrl-c
             //kill(pfcProcessPid[pfc], SIGINT);
-            fprintf(failures, "%s", message);
+            fprintf(failures, message, pfc);
         }
 
         if (fallimenti.value & 4u) {
@@ -61,7 +61,7 @@ int main(int argc, const char * argv[]) {
 
             //SIGCONT = riprende l'esecuzione di un programma dopo la sospensione
             //kill(pfcProcessPid[pfc], SIGCONT);
-            fprintf(failures, "%s", message);
+            fprintf(failures, message, pfc);
         }
 
         if (fallimenti.value & 8u) {
@@ -69,11 +69,12 @@ int main(int argc, const char * argv[]) {
 
             //SIGUSR1 = segnale definito dall'utente
             //kill(pfcProcessPid[pfc], SIGUSR1);
-            fprintf(failures, "%s", message);
+            fprintf(failures, message, pfc);
         }
 
-        numberOfCharsRead = readLine(fd_pipe, buffer_newPid, MESSAGES_SEPARATOR);
+        //fflush(failures);
 
+        numberOfCharsRead = readLine(fd_pipe, buffer_newPid, MESSAGES_SEPARATOR);
         if(numberOfCharsRead > 0) {
             removeLastChar(buffer_newPid);
 
@@ -91,30 +92,50 @@ int main(int argc, const char * argv[]) {
         }
     }
 
+    fclose(failures);
     close(fd_pipe);
 
     return 0;
 }
 
 u_4 calcoloProb() {
-    u_4 prob;
-    int value = rand() % PROB_TOT;
+    u_4 prob; prob.value = 0;
+    int random;
+    int value;
+    int inverse;
 
-    if(value < (PROB_SIGSTOP * PROB_TOT)) {
+    random = rand();
+    inverse = (int) inverse(PROB_SIGSTOP);
+    value = random % inverse;
+    if(value == 0) {
         prob.value |= 1u;
     }
+    //printf("%d, %d\n", random, value);
 
-    if(value < (PROB_SIGINT * PROB_TOT)) {
+    random = rand();
+    inverse = (int) inverse(PROB_SIGINT);
+    value = random % inverse;
+    if(value == 0) {
         prob.value |= 2u;
     }
+    //printf("%d, %d\n", random, value);
 
-    if(value < (PROB_SIGCONT * PROB_TOT)) {
+    random = rand();
+    inverse = (int) inverse(PROB_SIGCONT);
+    value = random % inverse;
+    if(value == 0) {
         prob.value |= 4u;
     }
+    //printf("%d, %d\n", random, value);
 
-    if(value < (PROB_SIGUSR1 * PROB_TOT)) {
+    random = rand();
+    inverse = (int) inverse(PROB_SIGUSR1);
+    value = random % inverse;
+    if(value == 0) {
         prob.value |= 8u;
     }
+    //printf("%d, %d\n", random, value);
+    //printf("%d\n\n", prob.value);
 
     return prob;
 }

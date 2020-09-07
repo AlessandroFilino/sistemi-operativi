@@ -1,10 +1,9 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
 #include <unistd.h>
 #include <fcntl.h>
 #include <sys/socket.h>
-#include <sys/un.h> /* For AF_UNIX sockets */
+#include <sys/un.h>
 #include "../include/utility.h"
 #include "../include/pfc.h"
 #include "../include/path.h"
@@ -15,8 +14,7 @@ enum boolean PFC2_sigstop;
 void signalHandler(int signal);
 
 int main(int argc, const char * argv[]) {
-    int last_read;
-    ssize_t read = 0;
+    ssize_t numberOfCharsRead = 0;
     double previousLatitude = 0;
     double previousLongitude = 0;
 
@@ -27,11 +25,11 @@ int main(int argc, const char * argv[]) {
     char *filename_g18 = "../doc/G18.txt";
     FILE *fp_g18 = openFile(filename_g18, "r");
 
-    last_read = open(FILENAME_LAST_READ, O_CREAT | O_RDWR, 0660);
-    changePointerPosition(fp_g18, last_read);
+    FILE *lastRead = openFile(FILENAME_LAST_READ, "r+");
+    changePointerPosition(fp_g18, lastRead);
 
     //TODO unlink va rimosso
-    //unlink (FILENAME_PFC2_SOCKET);
+    //unlink(FILENAME_PFC2_SOCKET);
 
     int clientFd;
     unsigned int serverLen;
@@ -40,18 +38,23 @@ int main(int argc, const char * argv[]) {
     clientFd = createClientAF_UNIXSocket(FILENAME_PFC2_SOCKET, &serverUNIXAddress, &serverSockAddrPtr, &serverLen);
     connectSocket(clientFd, serverSockAddrPtr, serverLen);
 
-    read = setPreviousGeographicCoordinates(fp_g18, &previousLatitude, &previousLongitude);
+    numberOfCharsRead = setPreviousGeographicCoordinates(fp_g18, &previousLatitude, &previousLongitude);
 
-    while(read != -1) {
+    while(numberOfCharsRead != -1) {
         //TODO usare sleep(1)
-        usleep((1 * 1000) * 1000); //1000 millisecondi = 1 secondo
+        usleep((1 * 1000) * 100); //1000 millisecondi = 1 secondo
 
-        read = exe(clientFd, fp_g18, last_read, &previousLatitude, &previousLongitude, &PFC2_sigusr, &PFC2_sigstop);
+        numberOfCharsRead = exe(clientFd, fp_g18, lastRead, &previousLatitude, &previousLongitude, &PFC2_sigusr, &PFC2_sigstop);
     }
 
-    write(clientFd, APPLICATION_ENDED_MESSAGE, string_length(APPLICATION_ENDED_MESSAGE));
+    char message[] = concat(APPLICATION_ENDED_MESSAGE, "\n");
+    int messageLength = string_length(APPLICATION_ENDED_MESSAGE) + 1;
+
+    write(clientFd, message, sizeof(char) * messageLength);
+    printf("%s\n", message);
 
     fclose(fp_g18);
+    fclose(lastRead);
     close(clientFd);
 
     return 0;
