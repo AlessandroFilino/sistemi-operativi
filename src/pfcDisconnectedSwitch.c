@@ -70,7 +70,7 @@ int main(int argc, const char *argv[]) {
     FILE *switchLog = openFile(FILENAME_SWITCH_LOG, "w");
 
     while(!terminated) {
-        sleep(1);
+        usleep((1 * 1000) * 100); //100 millisecondi
         numberOfCharsRead = readLine(wesPipe, error, MESSAGES_SEPARATOR);
 
         /*
@@ -80,14 +80,6 @@ int main(int argc, const char *argv[]) {
 
         if(numberOfCharsRead > 0) {
             removeLastChar(error);
-
-            //prova
-            /*
-             * char test[15] = {0};
-             * snprintf(test, 10, "0%s1000\n", PFCDISCONNECTEDSWITCH_SEPARATOR);
-             * int result = write(generatoreFallimentiPipe, test, sizeof(char) * strlen(test));
-             */
-            //prova
 
             printf("error: %s\n", error);
             fflush(stdout);
@@ -139,8 +131,7 @@ int main(int argc, const char *argv[]) {
                         kill(pid_pfc, SIGCONT);
                         fprintf(switchLog, message, pfcNumber);
                     }
-                }
-                else {
+                } else {
                     //il processo non esiste più
 
                     char filename[4];
@@ -155,7 +146,7 @@ int main(int argc, const char *argv[]) {
                     //invio nuovo pid a GeneratoreFallimenti
                     char messageNewPid[PFCDISCONNECTEDSWITCH_MESSAGE_MAX_LENGTH];
                     snprintf(messageNewPid, sizeof(char) * PFCDISCONNECTEDSWITCH_MESSAGE_MAX_LENGTH, "%d%s%d", pfcNumber, PFCDISCONNECTEDSWITCH_SEPARATOR, newPid);
-                    //write(generatoreFallimentiPipe, message, sizeof(char) * PFCDISCONNECTEDSWITCH_MESSAGE_MAX_LENGTH);
+                    write(generatoreFallimentiPipe, messageNewPid, sizeof(char) * PFCDISCONNECTEDSWITCH_MESSAGE_MAX_LENGTH);
                     printf("%s\n", messageNewPid);
 
                     char messageGeneratoreFallimenti[] = concat(PFCDISCONNECTEDSWITCH_MESSAGE_GENERATORE_FALLIMENTI, "\n");
@@ -166,7 +157,8 @@ int main(int argc, const char *argv[]) {
     }
 
     close(wesPipe);
-    //close(generatoreFallimentiPipe);
+    close(generatoreFallimentiPipe);
+    fclose(switchLog);
 
     return 0;
 }

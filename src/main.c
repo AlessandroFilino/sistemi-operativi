@@ -9,27 +9,46 @@
 #include "../include/messages.h"
 
 int main(int argc, const char* argv[]) {
-    /*
-     * argv[1] --> g18.txt
-     */
     int status;
-    char *filename_G18 = "../doc/G18.txt";
+    int pid;
+    char filename_G18[15] = {0};
+    strcpy(filename_G18, argv[1]);
 
     if(system(remove_files_from(PATHNAME_TEMP)) || system(remove_files_from(PATHNAME_LOG)) != 0) {
-        fprintf(stderr, "%s", MAIN_PATH_ERROR_MESSAGE);
+        fprintf(stderr, "%s\n", MAIN_PATH_ERROR_MESSAGE);
         exit(EXIT_FAILURE);
     }
 
     if(access(filename_G18, F_OK) == -1) {
-        fprintf(stderr, "%s", MAIN_INPUT_FNF_MESSAGE);
+        fprintf(stderr, "%s\n", MAIN_INPUT_FNF_MESSAGE);
         exit(EXIT_FAILURE);
     }
 
-    //int fd_p1 = open(p1, O_WRONLY | O_NONBLOCK, 0660);
-    //printf("(%s) %d\n", strerror(errno), ENXIO);
+    createEmptyFile(FILENAME_LAST_READ, "w");
 
-    //int fd_p2 = open(p2, O_WRONLY | O_NONBLOCK, 0660);
-    //printf("(%s)\n", strerror(errno));
+    char* transducers_argv[] = {"transducers", NULL};
+    int pid_transducers = createChild(&execv, "transducers", transducers_argv);
+
+    char* pfc1_argv[] = {"pfc1", filename_G18, NULL};
+    int pid_pfc1 = createChild(&execv, "pfc1", pfc1_argv);
+
+    char* pfc2_argv[] = {"pfc2", filename_G18, NULL};
+    int pid_pfc2 = createChild(&execv, "pfc2", pfc2_argv);
+
+    char* pfc3_argv[] = {"pfc3", filename_G18, NULL};
+    int pid_pfc3 = createChild(&execv, "pfc3", pfc3_argv);
+
+    for(int i=0; i<4; i++) {
+        pid = wait(&status);
+
+        if (WIFEXITED(status)) {
+
+            /* Child process exited normally, through `return` or `exit` */
+            printf("Child process %d exited with %d status\n", pid, WEXITSTATUS(status));
+        }
+    }
+
+    printf("transducers: %d\npfc1: %d\npfc2: %d\npfc3: %d\n", pid_transducers, pid_pfc1, pid_pfc2, pid_pfc3);
 
     /*char *pfcDisconnectedSwitch_argv[] = {"pfcDisconnectedSwitch", filename_G18, NULL};
     createChild(&execv, "pfcDisconnectedSwitch", pfcDisconnectedSwitch_argv);

@@ -205,7 +205,7 @@ int exe(int fd_pfcToTransducers, FILE *fp_g18, FILE *last_read, double *previous
          */
 
         write(fd_pfcToTransducers, message, sizeof(char) * (messageLength + 1));
-        printf("%s", message);
+        //printf("%s", message);
 
         if (*sigRestart) {
             changePointerPosition(fp_g18, last_read);

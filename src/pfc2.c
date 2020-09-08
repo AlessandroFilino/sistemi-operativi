@@ -21,15 +21,11 @@ int main(int argc, const char * argv[]) {
     signal(SIGUSR1, &signalHandler);
     signal(SIGSTOP, &signalHandler);
 
-    //TODO char *filename_g18 = argv[1];
-    char *filename_g18 = "../doc/G18.txt";
+    const char *filename_g18 = argv[1];
     FILE *fp_g18 = openFile(filename_g18, "r");
 
     FILE *lastRead = openFile(FILENAME_LAST_READ, "r+");
     changePointerPosition(fp_g18, lastRead);
-
-    //TODO unlink va rimosso
-    //unlink(FILENAME_PFC2_SOCKET);
 
     int clientFd;
     unsigned int serverLen;
@@ -51,7 +47,7 @@ int main(int argc, const char * argv[]) {
     int messageLength = string_length(APPLICATION_ENDED_MESSAGE) + 1;
 
     write(clientFd, message, sizeof(char) * messageLength);
-    printf("%s\n", message);
+    //sprintf("%s\n", message);
 
     fclose(fp_g18);
     fclose(lastRead);

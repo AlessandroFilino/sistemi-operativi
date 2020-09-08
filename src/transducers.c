@@ -7,7 +7,7 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <sys/socket.h>
-#include <sys/un.h> /* For AF_UNIX sockets */
+#include <sys/un.h>
 #include "../include/utility.h"
 #include "../include/transducers.h"
 #include "../include/path.h"
@@ -89,7 +89,7 @@ int main(int argc, const char * argv[]) {
                 PFC1terminated = TRUE;
             }
 
-            //memset(velocita_pfc1, '\0', sizeof(char) * 10);
+            memset(velocita_pfc1, '\0', sizeof(char) * 15);
         }
 
         //pfc2
@@ -108,7 +108,7 @@ int main(int argc, const char * argv[]) {
                 PFC2terminated = TRUE;
             }
 
-            //memset(velocita_pfc2, '\0', sizeof(char) * 10);
+            memset(velocita_pfc2, '\0', sizeof(char) * 15);
         }
 
         //pfc3
@@ -127,7 +127,7 @@ int main(int argc, const char * argv[]) {
                 PFC3terminated = TRUE;
             }
 
-            //memset(velocita_pfc3, '\0', sizeof(char) * 10);
+            memset(velocita_pfc3, '\0', sizeof(char) * 15);
         }
 
         tempo++;

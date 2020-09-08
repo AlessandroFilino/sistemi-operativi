@@ -28,7 +28,7 @@ int main(int argc, const char *argv[]) {
     enum boolean terminated = FALSE;
 
     while(!terminated) {
-        sleep(1);
+        usleep((1 * 1000) * 100); //100 millisecondi
 
         /*
          * TODO: Come potrebbe succedere nel transducer, leggendo da un
@@ -37,25 +37,28 @@ int main(int argc, const char *argv[]) {
          *       non ce n'è bisogno
          */
 
+        memset(bufferPFC1, '\0', sizeof(char) * string_length(APPLICATION_ENDED_MESSAGE));
         numberOfCharsRead = readLine(speedPFC1Log, bufferPFC1, MESSAGES_SEPARATOR);
         if(numberOfCharsRead > 0) {
             removeLastChar(bufferPFC1);
         } else {
-            memset(bufferPFC1, '\0', sizeof(char) * string_length(APPLICATION_ENDED_MESSAGE));
+            snprintf(bufferPFC1, sizeof(char) * 2, "-1");
         }
 
+        memset(bufferPFC2, '\0', sizeof(char) * string_length(APPLICATION_ENDED_MESSAGE));
         numberOfCharsRead = readLine(speedPFC2Log, bufferPFC2, MESSAGES_SEPARATOR);
         if(numberOfCharsRead > 0) {
             removeLastChar(bufferPFC2);
         } else {
-            memset(bufferPFC2, '\0', sizeof(char) * string_length(APPLICATION_ENDED_MESSAGE));
+            snprintf(bufferPFC2, sizeof(char) * 2, "-1");
         }
 
+        memset(bufferPFC3, '\0', sizeof(char) * string_length(APPLICATION_ENDED_MESSAGE));
         numberOfCharsRead = readLine(speedPFC3Log, bufferPFC3, MESSAGES_SEPARATOR);
         if(numberOfCharsRead > 0) {
             removeLastChar(bufferPFC3);
         } else {
-            memset(bufferPFC3, '\0', sizeof(char) * string_length(APPLICATION_ENDED_MESSAGE));
+            snprintf(bufferPFC3, sizeof(char) * 2, "-1");
         }
 
         if((strcmp(bufferPFC1, APPLICATION_ENDED_MESSAGE) == 0) ||

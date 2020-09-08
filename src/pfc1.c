@@ -19,8 +19,7 @@ int main(int argc, const char * argv[]) {
     signal(SIGUSR1, &signalHandler);
     signal(SIGSTOP, &signalHandler);
 
-    //TODO char *filename_g18 = argv[1];
-    char *filename_g18 = "../doc/G18.txt";
+    const char *filename_g18 = argv[1];
     FILE *fp_g18 = openFile(filename_g18, "r");
 
     /*
@@ -35,8 +34,6 @@ int main(int argc, const char * argv[]) {
     FILE *lastRead = openFile(FILENAME_LAST_READ, "r+");
     changePointerPosition(fp_g18, lastRead);
 
-    //TODO unlink va rimosso
-    //unlink(FILENAME_PFC1_PIPE);
     int transducersPipe = connectPipe(FILENAME_PFC1_PIPE, O_WRONLY);
 
     numberOfCharsRead = setPreviousGeographicCoordinates(fp_g18, &previousLatitude, &previousLongitude);
@@ -52,7 +49,7 @@ int main(int argc, const char * argv[]) {
     int messageLength = string_length(APPLICATION_ENDED_MESSAGE) + 1;
 
     write(transducersPipe, message, sizeof(char) * messageLength);
-    printf("%s\n", message);
+    //printf("%s\n", message);
 
     fclose(fp_g18);
     fclose(lastRead);

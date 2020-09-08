@@ -35,9 +35,11 @@ int main(int argc, const char * argv[]) {
     };
 
     while(terminated == FALSE) {
-        sleep(1);
+        usleep((1 * 1000) * 100); //100 millisecondi
 
         pfc = rand() % 3;
+        printf("%d, ", pfc);
+
         fallimenti = calcoloProb();
 
         if (fallimenti.value & 1u) {
@@ -71,8 +73,6 @@ int main(int argc, const char * argv[]) {
             //kill(pfcProcessPid[pfc], SIGUSR1);
             fprintf(failures, message, pfc);
         }
-
-        //fflush(failures);
 
         numberOfCharsRead = readLine(fd_pipe, buffer_newPid, MESSAGES_SEPARATOR);
         if(numberOfCharsRead > 0) {
@@ -110,7 +110,7 @@ u_4 calcoloProb() {
     if(value == 0) {
         prob.value |= 1u;
     }
-    //printf("%d, %d\n", random, value);
+    printf("%d, ", value);
 
     random = rand();
     inverse = (int) inverse(PROB_SIGINT);
@@ -118,7 +118,7 @@ u_4 calcoloProb() {
     if(value == 0) {
         prob.value |= 2u;
     }
-    //printf("%d, %d\n", random, value);
+    printf("%d, ", value);
 
     random = rand();
     inverse = (int) inverse(PROB_SIGCONT);
@@ -126,7 +126,7 @@ u_4 calcoloProb() {
     if(value == 0) {
         prob.value |= 4u;
     }
-    //printf("%d, %d\n", random, value);
+    printf("%d, ", value);
 
     random = rand();
     inverse = (int) inverse(PROB_SIGUSR1);
@@ -134,8 +134,7 @@ u_4 calcoloProb() {
     if(value == 0) {
         prob.value |= 8u;
     }
-    //printf("%d, %d\n", random, value);
-    //printf("%d\n\n", prob.value);
+    printf("%d, %d\n", value, prob.value);
 
     return prob;
 }
