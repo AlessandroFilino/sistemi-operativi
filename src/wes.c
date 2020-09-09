@@ -27,6 +27,7 @@ int main(int argc, const char *argv[]) {
     int numberOfCharsRead = 0;
     enum boolean terminated = FALSE;
 
+
     while(!terminated) {
         usleep((1 * 1000) * 100); //100 millisecondi
 
@@ -42,7 +43,7 @@ int main(int argc, const char *argv[]) {
         if(numberOfCharsRead > 0) {
             removeLastChar(bufferPFC1);
         } else {
-            snprintf(bufferPFC1, sizeof(char) * 2, "-1");
+            snprintf(bufferPFC1, sizeof(char) * 3, "-1");
         }
 
         memset(bufferPFC2, '\0', sizeof(char) * string_length(APPLICATION_ENDED_MESSAGE));
@@ -50,7 +51,7 @@ int main(int argc, const char *argv[]) {
         if(numberOfCharsRead > 0) {
             removeLastChar(bufferPFC2);
         } else {
-            snprintf(bufferPFC2, sizeof(char) * 2, "-1");
+            snprintf(bufferPFC2, sizeof(char) * 3, "-1");
         }
 
         memset(bufferPFC3, '\0', sizeof(char) * string_length(APPLICATION_ENDED_MESSAGE));
@@ -58,7 +59,7 @@ int main(int argc, const char *argv[]) {
         if(numberOfCharsRead > 0) {
             removeLastChar(bufferPFC3);
         } else {
-            snprintf(bufferPFC3, sizeof(char) * 2, "-1");
+            snprintf(bufferPFC3, sizeof(char) * 3, "-1");
         }
 
         if((strcmp(bufferPFC1, APPLICATION_ENDED_MESSAGE) == 0) ||
@@ -124,7 +125,7 @@ int main(int argc, const char *argv[]) {
     fprintf(status, "%s", message);
     write(wesPipe, message, sizeof(char) * messageLength);
 
-    printf("(%.2f, %.2f, %.2f) - %s", speedPFC1, speedPFC2, speedPFC3, message);
+    printf("(/, /, /) - %s", message);
 
     close(speedPFC1Log);
     close(speedPFC2Log);

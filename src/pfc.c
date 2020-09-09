@@ -191,8 +191,7 @@ int exe(int fd_pfcToTransducers, FILE *fp_g18, FILE *last_read, double *previous
             messageLength++;
         }
 
-        char *message = malloc(
-                sizeof(char) * (messageLength + 1 + 1)); //+2 per il carattere \n e poi di \0 (fine stringa)
+        char *message = malloc(sizeof(char) * (messageLength + 1 + 1)); //+2 per il carattere \n e poi di \0 (fine stringa)
         int result = snprintf(message, sizeof(char) * (messageLength + 1 + 1), "%.2f\n", velocity);
 
         if (result < 0) {

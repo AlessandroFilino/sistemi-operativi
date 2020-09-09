@@ -58,7 +58,7 @@ int main(int argc, const char * argv[]) {
     while(PFC1terminated == FALSE || PFC2terminated == FALSE || PFC3terminated == FALSE) {
 
         //TODO usare usleep(5000) --> sleep di 5 millisecondi
-        usleep((1 * 1000) * 50); //100 millisecondi
+        usleep((1 * 1000) * 5); //100 millisecondi
 
         /*
          * TODO: Visto che il transducers va più veloce
@@ -82,8 +82,8 @@ int main(int argc, const char * argv[]) {
 
             removeLastChar(velocita_pfc1);
 
-            printf("pfc1 - transducer: (%d) %s\n", tempo, velocita_pfc1);
-            fflush(stdout);
+            //printf("pfc1 - transducer: (%d) %s\n", tempo, velocita_pfc1);
+            //fflush(stdout);
 
             if(strcmp(velocita_pfc1, APPLICATION_ENDED_MESSAGE) == 0) {
                 PFC1terminated = TRUE;
@@ -101,8 +101,8 @@ int main(int argc, const char * argv[]) {
 
             removeLastChar(velocita_pfc2);
 
-            printf("pfc2 - transducer: (%d) %s\n", tempo, velocita_pfc2);
-            fflush(stdout);
+            //printf("pfc2 - transducer: (%d) %s\n", tempo, velocita_pfc2);
+            //fflush(stdout);
 
             if(strcmp(velocita_pfc2, APPLICATION_ENDED_MESSAGE) == 0) {
                 PFC2terminated = TRUE;
@@ -120,8 +120,8 @@ int main(int argc, const char * argv[]) {
 
             removeLastChar(velocita_pfc3);
 
-            printf("pfc3 - transducer: (%d) %s\n", tempo, velocita_pfc3);
-            fflush(stdout);
+            //printf("pfc3 - transducer: (%d) %s\n", tempo, velocita_pfc3);
+            //fflush(stdout);
 
             if(strcmp(velocita_pfc3, APPLICATION_ENDED_MESSAGE) == 0) {
                 PFC3terminated = TRUE;

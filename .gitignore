@@ -17,3 +17,4 @@ bin/
 #ignorare il file test.c perchè serve solo a fare test veloci
 src/test.c
 src/test2.c
+test-config.txt

@@ -5,33 +5,34 @@
 #include <string.h>
 #include <signal.h>
 #include <sys/stat.h>
+#include <errno.h>
 #include "../include/pfcDisconnectedSwitch.h"
 #include "../include/utility.h"
 #include "../include/path.h"
 #include "../include/messages.h"
 
 int main(int argc, const char *argv[]) {
-    //char *filename_g18 = argv[1];
-    char *filename_g18 = "../sistemioperativi/doc/G18.txt";
+    char filename_g18[15] = {0};
+    strcpy(filename_g18, argv[1]);
 
     int numberOfCharsRead;
     int pid_pfc;
     int pfcNumber;
-    int pfcProcessPid[3] = {111, 222, 333};
-    int generatoreFallimentiProcess;
+    int pfcProcessPid[3] = {0};
+    int generatoreFallimentiProcess = 0;
     enum boolean terminated = FALSE;
     char error[WES_MESSAGE_MAX_LENGTH] = {0};
 
     createEmptyFile(FILENAME_LAST_READ, "w");
 
     char *PFC1_argv[] = {"pfc1", filename_g18, NULL};
-    //pfcProcessPid[0] = createChild(&execv, "pfc1", PFC1_argv);
+    pfcProcessPid[0] = createChild(&execv, "pfc1", PFC1_argv);
 
     char *PFC2_argv[] = {"pfc2", filename_g18, NULL};
-    //pfcProcessPid[1] = createChild(&execv, "pfc2", PFC2_argv);
+    pfcProcessPid[1] = createChild(&execv, "pfc2", PFC2_argv);
 
     char *PFC3_argv[] = {"pfc3", filename_g18, NULL};
-    //pfcProcessPid[2] = createChild(&execv, "pfc3", PFC3_argv);
+    pfcProcessPid[2] = createChild(&execv, "pfc3", PFC3_argv);
 
     /*
      * alloco 3 buffer per contenere i PID dei processi PFC
@@ -47,8 +48,8 @@ int main(int argc, const char *argv[]) {
     snprintf(pfc2Process, sizeof(char) * 10, "%d", pfcProcessPid[1]);
     snprintf(pfc3Process, sizeof(char) * 10, "%d", pfcProcessPid[2]);
 
-    char *generatoreFallimenti_argv[] = {"generatoreFallimenti", pfc1Process, pfc2Process, pfc3Process};
-    //generatoreFallimentiProcess = createChild(&execv, "generatoreFallimenti", generatoreFallimenti_argv);
+    char *generatoreFallimenti_argv[] = {"generatoreFallimenti", pfc1Process, pfc2Process, pfc3Process, NULL};
+    generatoreFallimentiProcess = createChild(&execv, "generatoreFallimenti", generatoreFallimenti_argv);
 
     /*
      * TODO: usare una macro al posto di **pfcArgv[] per creare i token
@@ -81,8 +82,8 @@ int main(int argc, const char *argv[]) {
         if(numberOfCharsRead > 0) {
             removeLastChar(error);
 
-            printf("error: %s\n", error);
-            fflush(stdout);
+            //printf("error: %s\n", error);
+            //fflush(stdout);
 
             if(strcmp(error, APPLICATION_ENDED_MESSAGE) == 0) {
                 terminated = TRUE;
@@ -90,7 +91,7 @@ int main(int argc, const char *argv[]) {
                 //invia "Terminated" a generatoreFallimenti
                 char message[] = concat(APPLICATION_ENDED_MESSAGE, "\n");
                 int messageLength = string_length(APPLICATION_ENDED_MESSAGE) + 1;
-                //write(generatoreFallimentiPipe, message, sizeof(char) * messageLength);
+                write(generatoreFallimentiPipe, message, sizeof(char) * messageLength);
 
                 /*
                  * Non abbiamo usato signal(SIGCHLD, SIG_IGN); per ignorare la morte
@@ -98,15 +99,40 @@ int main(int argc, const char *argv[]) {
                  * Abbiamo preferito usare la wait ripetuta 4 volte (pfc1/2/3 e generatoreFallimenti)
                  */
 
-                for(int i=0; i<4; i++) {
-                    //wait(NULL);
+                int status;
+                int pid;
+
+                for(int i=0; i<4; i++) {   //----->   generatoreFallimenti
+                //for(int i=0; i<3; i++) {
+                    pid = wait(&status);
+
+                    if(pid < 0) {
+                        fprintf(stderr, "PfcDiscSwitch: error process child -> %s\n", strerror(errno));
+                    } else if (WIFEXITED(status)) {
+                        //Child process exited normally, through `return` or `exit`
+                        char name[50] = {0};
+
+                        if(pid == pfcProcessPid[0]) {
+                            strcpy(name, "pfc1");
+                        } else if(pid == pfcProcessPid[1]) {
+                            strcpy(name, "pfc2");
+                        } else if(pid == pfcProcessPid[2]) {
+                            strcpy(name, "pfc3");
+                        } else if(pid == generatoreFallimentiProcess) {
+                            strcpy(name, "generatoreFallimenti");
+                        } else {
+                            snprintf(name, sizeof(char) * 10, "%d", pid);
+                        }
+                        
+                        printf("PfcDiscSwitch: Child process '%s' exited with %d status\n", name, WEXITSTATUS(status));
+                    }
                 }
             } else if(strcmp(error, WES_MESSAGE_EMERGENCY) == 0) {
                 char message[] = concat(PFCDISCONNECTEDSWITCH_MESSAGE_EMERGENCY, "\n");
 
-                //kill(pfcProcessPid[0], SIGUSR2);
-                //kill(pfcProcessPid[1], SIGUSR2);
-                //kill(pfcProcessPid[2], SIGUSR2);
+                kill(pfcProcessPid[0], SIGUSR2);
+                kill(pfcProcessPid[1], SIGUSR2);
+                kill(pfcProcessPid[2], SIGUSR2);
                 fprintf(switchLog, "%s", message);
 
             } else if (strcmp(error, WES_MESSAGE_SUCCESS) != 0) {
@@ -122,7 +148,8 @@ int main(int argc, const char *argv[]) {
                     //il processo esiste
 
                     int status = 0;
-                    waitpid(pid_pfc, &status, WNOHANG | WUNTRACED);
+                    int result = 0;
+                    result = waitpid(pid_pfc, &status, WNOHANG | WUNTRACED);
 
                     if(WIFSTOPPED(status) != 0) {
                         //il processo è bloccato
@@ -131,13 +158,16 @@ int main(int argc, const char *argv[]) {
                         kill(pid_pfc, SIGCONT);
                         fprintf(switchLog, message, pfcNumber);
                     }
+
+                    printf("error = %s, waitpid = %d, status = %d\n", error, result, status);
+
                 } else {
                     //il processo non esiste più
 
-                    char filename[4];
+                    /*char filename[4];
                     snprintf(filename, sizeof(char) * 4, "pfc%d", pfcNumber);
 
-                    int newPid = 500; //createChild(&execv, filename, pfcArgv[pfcNumber - 1]);
+                    int newPid = createChild(&execv, filename, pfcArgv[pfcNumber - 1]);
                     pfcProcessPid[pfcNumber - 1] = newPid;
 
                     char messagePfcCreated[] = concat(PFCDISCONNECTEDSWITCH_MESSAGE_PFC_CREATED, "\n");
@@ -147,12 +177,14 @@ int main(int argc, const char *argv[]) {
                     char messageNewPid[PFCDISCONNECTEDSWITCH_MESSAGE_MAX_LENGTH];
                     snprintf(messageNewPid, sizeof(char) * PFCDISCONNECTEDSWITCH_MESSAGE_MAX_LENGTH, "%d%s%d", pfcNumber, PFCDISCONNECTEDSWITCH_SEPARATOR, newPid);
                     write(generatoreFallimentiPipe, messageNewPid, sizeof(char) * PFCDISCONNECTEDSWITCH_MESSAGE_MAX_LENGTH);
-                    printf("%s\n", messageNewPid);
+                    //printf("%s\n", messageNewPid);
 
                     char messageGeneratoreFallimenti[] = concat(PFCDISCONNECTEDSWITCH_MESSAGE_GENERATORE_FALLIMENTI, "\n");
-                    fprintf(switchLog, messageGeneratoreFallimenti, pfcNumber);
+                    fprintf(switchLog, messageGeneratoreFallimenti, pfcNumber);*/
                 }
             }
+
+            memset(error, '\0', sizeof(char) * strlen(error));
         }
     }
 

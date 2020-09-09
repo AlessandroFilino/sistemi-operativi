@@ -10,7 +10,7 @@
 #include "../include/path.h"
 #include "../include/messages.h"
 
-int main(int argc, const char * argv[]) {
+int main(int argc, const char *argv[]) {
     srand(time(NULL));
 
     int pfc;
@@ -24,9 +24,9 @@ int main(int argc, const char * argv[]) {
     FILE *failures = openFile(FILENAME_FAILURES_LOG, "w");
     char buffer_newPid[PFCDISCONNECTEDSWITCH_MESSAGE_MAX_LENGTH + 1 + 1] = {0};
 
-    const char *pfc1_pid = "1"; //= argv[1];
-    const char *pfc2_pid = "1"; //= argv[2];
-    const char *pfc3_pid = "1"; //= argv[3];
+    const char *pfc1_pid = argv[1];
+    const char *pfc2_pid = argv[2];
+    const char *pfc3_pid = argv[3];
 
     int pfcProcessPid[3] = {
             (int) strtol(pfc1_pid, NULL, 10),
@@ -34,13 +34,14 @@ int main(int argc, const char * argv[]) {
             (int) strtol(pfc3_pid, NULL, 10)
     };
 
-    while(terminated == FALSE) {
+    while(!terminated) {
         usleep((1 * 1000) * 100); //100 millisecondi
 
         pfc = rand() % 3;
-        printf("%d, ", pfc);
+        //printf("%d, ", pfc);
 
         fallimenti = calcoloProb();
+        //printf("\npfc: %d - value: %d\n\n", pfc+1, fallimenti.value);
 
         if (fallimenti.value & 1u) {
             char message[] = concat(GENERATORE_FALLIMENTI_SIGSTOP, "\n");
@@ -62,7 +63,7 @@ int main(int argc, const char * argv[]) {
             char message[] = concat(GENERATORE_FALLIMENTI_SIGCONT, "\n");
 
             //SIGCONT = riprende l'esecuzione di un programma dopo la sospensione
-            //kill(pfcProcessPid[pfc], SIGCONT);
+            kill(pfcProcessPid[pfc], SIGCONT);
             fprintf(failures, message, pfc);
         }
 
@@ -70,7 +71,7 @@ int main(int argc, const char * argv[]) {
             char message[] = concat(GENERATORE_FALLIMENTI_SIGUSR1, "\n");
 
             //SIGUSR1 = segnale definito dall'utente
-            //kill(pfcProcessPid[pfc], SIGUSR1);
+            kill(pfcProcessPid[pfc], SIGUSR1);
             fprintf(failures, message, pfc);
         }
 
@@ -110,7 +111,7 @@ u_4 calcoloProb() {
     if(value == 0) {
         prob.value |= 1u;
     }
-    printf("%d, ", value);
+    //printf("%d, ", value);
 
     random = rand();
     inverse = (int) inverse(PROB_SIGINT);
@@ -118,7 +119,7 @@ u_4 calcoloProb() {
     if(value == 0) {
         prob.value |= 2u;
     }
-    printf("%d, ", value);
+    //printf("%d, ", value);
 
     random = rand();
     inverse = (int) inverse(PROB_SIGCONT);
@@ -126,7 +127,7 @@ u_4 calcoloProb() {
     if(value == 0) {
         prob.value |= 4u;
     }
-    printf("%d, ", value);
+    //printf("%d, ", value);
 
     random = rand();
     inverse = (int) inverse(PROB_SIGUSR1);
@@ -134,7 +135,7 @@ u_4 calcoloProb() {
     if(value == 0) {
         prob.value |= 8u;
     }
-    printf("%d, %d\n", value, prob.value);
+    //printf("%d, %d\n", value, prob.value);
 
     return prob;
 }
