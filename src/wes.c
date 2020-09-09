@@ -97,7 +97,7 @@ int main(int argc, const char *argv[]) {
                     fprintf(status, "%s", message);
                     write(wesPipe, message, sizeof(char) * messageLength);
 
-                    printf("(%.2f, %.2f, %.2f) - %s", speedPFC1, speedPFC2, speedPFC3, message);
+                    //printf("(%.2f, %.2f, %.2f) - %s", speedPFC1, speedPFC2, speedPFC3, message);
                 } else if (speedPFC2 == speedPFC3) {
                     char message[] = concat(WES_MESSAGE_PFC1_ERROR, "\n");
                     int messageLength = string_length(WES_MESSAGE_PFC1_ERROR) + 1;

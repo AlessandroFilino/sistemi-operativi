@@ -48,7 +48,7 @@ int main(int argc, const char *argv[]) {
 
             //SIGSTOP = sospensione da dentro un programma
             //kill(pfcProcessPid[pfc], SIGSTOP);
-            fprintf(failures, message, pfc);
+            fprintf(failures, message, pfc+1);
         }
 
         if (fallimenti.value & 2u) {
@@ -56,15 +56,31 @@ int main(int argc, const char *argv[]) {
 
             //SIGINT = quando l'utente digita ctrl-c
             //kill(pfcProcessPid[pfc], SIGINT);
-            fprintf(failures, message, pfc);
+            fprintf(failures, message, pfc+1);
         }
 
         if (fallimenti.value & 4u) {
             char message[] = concat(GENERATORE_FALLIMENTI_SIGCONT, "\n");
 
-            //SIGCONT = riprende l'esecuzione di un programma dopo la sospensione
-            kill(pfcProcessPid[pfc], SIGCONT);
-            fprintf(failures, message, pfc);
+            /*if(kill(pfcProcessPid[pfc], 0) == 0) {
+                //il processo esiste
+
+                int status = 0;
+                int result = 0;
+                result = waitpid(pfcProcessPid[pfc], &status, WNOHANG);
+
+                if(WIFSTOPPED(status) != 0) {
+                    //il processo è bloccato
+                    char message[] = concat(PFCDISCONNECTEDSWITCH_MESSAGE_SIGCONT, "\n");
+
+                    //SIGCONT = riprende l'esecuzione di un programma dopo la sospensione
+                    kill(pfcProcessPid[pfc], SIGCONT);
+                    fprintf(failures, message, pfc+1);
+                }
+
+                printf("pid = %d, waitpid = %d, status = %d, stopped = %d\n", pfcProcessPid[pfc], result, status, WIFSTOPPED(status));
+                fflush(stdout);
+            }*/
         }
 
         if (fallimenti.value & 8u) {
@@ -72,7 +88,7 @@ int main(int argc, const char *argv[]) {
 
             //SIGUSR1 = segnale definito dall'utente
             kill(pfcProcessPid[pfc], SIGUSR1);
-            fprintf(failures, message, pfc);
+            fprintf(failures, message, pfc+1);
         }
 
         numberOfCharsRead = readLine(fd_pipe, buffer_newPid, MESSAGES_SEPARATOR);

@@ -10,6 +10,8 @@
 
 //TODO: spostare getDistance() e getVelocity() in utility? 
 
+//TODO spostare la creazione delle pipe nel main
+
 /*
     TODO: possiamo creare un handler per il segnale di SIGSTOP
           che setta a TRUE una variabile e quando un pfc controlla
@@ -46,7 +48,7 @@
 
 int main(int argc, const char* argv[]) {
     int status;
-    int pid;
+    int pid = 0;
     char filename_G18[15] = {0};
     strcpy(filename_G18, argv[1]);
 
@@ -60,7 +62,8 @@ int main(int argc, const char* argv[]) {
         exit(EXIT_FAILURE);
     }
     
-
+    createEmptyFile(FILENAME_LAST_READ, "w");
+    
     /*
     createEmptyFile(FILENAME_LAST_READ, "w");
 
@@ -110,7 +113,7 @@ int main(int argc, const char* argv[]) {
     char *wes_argv[] = {"wes", NULL};
     int wes_pid = createChild(&execv, "wes", wes_argv);
 
-    for(int i=0; i<3; i++) {
+    while(pid >= 0) {
         pid = wait(&status);
 
         //Child process exited normally, through `return` or `exit`

@@ -23,8 +23,6 @@ int main(int argc, const char *argv[]) {
     enum boolean terminated = FALSE;
     char error[WES_MESSAGE_MAX_LENGTH] = {0};
 
-    createEmptyFile(FILENAME_LAST_READ, "w");
-
     char *PFC1_argv[] = {"pfc1", filename_g18, NULL};
     pfcProcessPid[0] = createChild(&execv, "pfc1", PFC1_argv);
 
@@ -100,10 +98,9 @@ int main(int argc, const char *argv[]) {
                  */
 
                 int status;
-                int pid;
+                int pid = 0;
 
-                for(int i=0; i<4; i++) {   //----->   generatoreFallimenti
-                //for(int i=0; i<3; i++) {
+                while(pid >= 0) {
                     pid = wait(&status);
 
                     if(pid < 0) {
@@ -159,7 +156,7 @@ int main(int argc, const char *argv[]) {
                         fprintf(switchLog, message, pfcNumber);
                     }
 
-                    printf("error = %s, waitpid = %d, status = %d\n", error, result, status);
+                    //printf("error = %s, waitpid = %d, status = %d\n", error, result, status);
 
                 } else {
                     //il processo non esiste più

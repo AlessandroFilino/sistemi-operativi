@@ -17,7 +17,7 @@ int main(int argc, const char * argv[]) {
     double previousLongitude = 0;
 
     signal(SIGUSR1, &signalHandler);
-    signal(SIGSTOP, &signalHandler);
+    signal(SIGCONT, &signalHandler);
 
     const char *filename_g18 = argv[1];
     FILE *fp_g18 = openFile(filename_g18, "r");

@@ -15,7 +15,10 @@ void setSignalStatus(int signalReceived, enum boolean *PFC_sigUsr, enum boolean 
 
         case SIGUSR2:
 
-        case SIGSTOP: {
+        case SIGCONT: {
+            printf("ciaociaociao - %d\n", signalReceived);
+            fflush(stdout);
+            
             *PFC_sigRestart = TRUE;
             break;
         }
@@ -198,19 +201,19 @@ int exe(int fd_pfcToTransducers, FILE *fp_g18, FILE *last_read, double *previous
             return -1;
         }
 
-        /*
-         * TODO: sizeof(char) potrebbe essere eliminato in quanto
-         *       la write scrive su un file leggendo da una stringa
-         */
-
-        write(fd_pfcToTransducers, message, sizeof(char) * (messageLength + 1));
-        //printf("%s", message);
-
         if (*sigRestart) {
             changePointerPosition(fp_g18, last_read);
             setPreviousGeographicCoordinates(fp_g18, previousLatitude, previousLongitude);
             *sigRestart = FALSE;
         } else {
+            /*
+             * TODO: sizeof(char) potrebbe essere eliminato in quanto
+             *       la write scrive su un file leggendo da una stringa
+             */
+
+            write(fd_pfcToTransducers, message, sizeof(char) * (messageLength + 1));
+            //printf("%s", message);
+
             *previousLatitude = latitude;
             *previousLongitude = longitude;
             addLastRead(last_read, ftell(fp_g18));
