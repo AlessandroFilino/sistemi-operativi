@@ -7,7 +7,7 @@
 #include <signal.h>
 #include "../include/utility.h"
 #include "../include/pfc.h"
-#include "../include/path.h"
+#include "../include/config.h"
 #include "../include/messages.h"
 
 enum boolean PFC2_sigusr;

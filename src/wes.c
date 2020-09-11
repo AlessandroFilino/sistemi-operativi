@@ -6,7 +6,7 @@
 #include "../include/messages.h"
 #include "../include/wes.h"
 #include "../include/utility.h"
-#include "../include/path.h"
+#include "../include/config.h"
 
 int main(int argc, const char *argv[]) {
     int wesPipe = connectPipe(FILENAME_WES_PIPE, O_WRONLY);

@@ -22,7 +22,7 @@
 #define array_length(ARRAY)        (sizeof(ARRAY)/sizeof(ARRAY[0]))
 #define string_length(S)           (array_length(S)-1)
 
-#define DEFAULT_PERMISSIONS 0660
+#define RAGGIO_TERRA_METRI 6367863
 #define DEFAULT_PROTOCOL    0
 
 enum boolean {FALSE, TRUE};
@@ -41,8 +41,12 @@ int createServerAF_UNIXSocket(char *socketname, int maximumConnections, struct s
 int createClientAF_UNIXSocket(char *socketname, struct sockaddr_un* serverUNIXAddress, struct sockaddr **serverSockAddrPtr, int unsigned *serverLen);
 void connectSocket(int clientFd, const struct sockaddr* serverSockAddrPtr, socklen_t serverLen);
 void setFileFlags(int fd, unsigned int newFlags);
+enum boolean socketIsNotConnected(int socketFd);
 
-enum boolean isInteger(double value);
+double getDistance(double latitude, double longitude, double previousLatitude, double previousLongitude);
+double degreeToRadian(double degree);
+double getVelocity(double space, int time);
+
 int numberOfDigits(int value);
 void removeLastChar(char *string);
 void tokenize(char *string, char *separator, int tokenNumber, ...);

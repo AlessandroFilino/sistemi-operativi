@@ -9,16 +9,9 @@
 #include <sys/socket.h>
 #include <sys/un.h>
 #include "../include/utility.h"
-#include "../include/transducers.h"
-#include "../include/path.h"
+#include "../include/transducers-socket.h"
+#include "../include/config.h"
 #include "../include/messages.h"
-
-enum boolean is_not_connected(int sock)
-{
-    unsigned char buf;
-    int err = recv(sock, &buf, 1, MSG_PEEK | MSG_DONTWAIT);
-    return err == -1 ? FALSE : TRUE;
-}
 
 int main(int argc, const char *argv[]) {
 	//pfc2
@@ -67,7 +60,7 @@ int main(int argc, const char *argv[]) {
             }
 
             memset(velocita_pfc2, '\0', sizeof(char) * 15);
-        } else if(is_not_connected(clientFd) && !PFC2terminated) {
+        } else if(socketIsNotConnected(clientFd) && !PFC2terminated) {
 		close(clientFd);
 	
 		clientFd = accept(serverFd, clientSockAddrPtr, &clientLen);

@@ -174,11 +174,49 @@ void setFileFlags(int fd, unsigned int newFlags) {
     fcntl(fd, F_SETFL, oldFlags | newFlags);
 }
 
-enum boolean isInteger(double value) {
-	return (ceil(value) == value)
-		? TRUE
-		: FALSE;
+enum boolean socketIsNotConnected(int socketFd) {
+    unsigned char buf;
+    size_t len = 1;
+    int err = recv(socketFd, &buf, len, MSG_PEEK | MSG_DONTWAIT);
+
+    /*
+     * MSG_PEEK
+              This flag causes the receive operation to return data from the
+              beginning of the receive queue without removing that data from
+              the queue.  Thus, a subsequent receive call will return the
+              same data.
+       MSG_DONTWAIT
+              Enables nonblocking operation;
+     */
+    return err == -1
+            ? FALSE
+            : TRUE;
 }
+
+double degreeToRadian(double degree) {
+    return degree * ((double) M_PI / 180);
+}
+
+double getDistance(double latitude, double longitude, double previousLatitude, double previousLongitude){
+    //TODO rinominare "dLat" in "differenceLatitude" e "dLon" in "differenceLongitude"?
+
+    double dLat = degreeToRadian(latitude - previousLatitude);
+    double dLon = degreeToRadian(longitude - previousLongitude);
+    latitude = degreeToRadian(latitude);
+    previousLatitude = degreeToRadian(previousLatitude);
+
+    double a = sin(dLat/2) * sin(dLat/2) +
+               sin(dLon/2) * sin(dLon/2) * cos(previousLatitude) * cos(latitude);
+    double c = 2 * atan2(sqrt(a), sqrt(1-a));
+
+    return RAGGIO_TERRA_METRI * c;
+}
+
+double getVelocity(double space, int time){
+    /* Spazio in metri, time in secondi m/s */
+    return space / time;
+}
+
 
 int numberOfDigits(int value) {
     int digits = 0;

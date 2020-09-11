@@ -6,7 +6,7 @@
 #include <sys/wait.h>
 #include "../include/utility.h"
 #include "../include/main.h"
-#include "../include/path.h"
+#include "../include/config.h"
 #include "../include/messages.h"
 
 //TODO: spostare getDistance() e getVelocity() in utility? 

@@ -9,7 +9,7 @@
 #include <errno.h>
 #include "../include/pfcDisconnectedSwitch.h"
 #include "../include/utility.h"
-#include "../include/path.h"
+#include "../include/config.h"
 #include "../include/messages.h"
 
 int main(int argc, const char *argv[]) {

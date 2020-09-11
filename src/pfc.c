@@ -4,7 +4,7 @@
 #include <math.h>
 #include <unistd.h>
 #include <signal.h>
-#include "../include/path.h"
+#include "../include/config.h"
 #include "../include/pfc.h"
 #include "../include/utility.h"
 
@@ -155,7 +155,7 @@ void getGeographicCoordinates(char* line, double* latitude, double* longitude) {
     char latitudeLocation[2] = {0};
     char longitudeLocation[2] = {0};
 
-    tok = strtok(line, SEPARATOR_TOKENIZER);
+    tok = strtok(line, NMEA_FORMAT_SEPARATOR);
 
     //TODO gestire errore
     if(tok == NULL) {
@@ -164,7 +164,7 @@ void getGeographicCoordinates(char* line, double* latitude, double* longitude) {
 
     //char temp_latitude[50] = {0}
     //char temp_longitude[50] = {0}
-    //tokenize(line, SEPARATOR_TOKENIZER, 3, temp_latitude, direzioneLatitudine, temp_longitude, direzioneLongitudine);
+    //tokenize(line, NMEA_FORMAT_SEPARATOR, 3, temp_latitude, direzioneLatitudine, temp_longitude, direzioneLongitudine);
 
     /*
      * I valori di Latitudine e longitudine vengono divisi per 100
@@ -173,41 +173,17 @@ void getGeographicCoordinates(char* line, double* latitude, double* longitude) {
      * I gradi presi rispetto a Sud (cioè 'S') e a Ovest (cioè 'W')
      * devono essere negativi per calcolare correttamente la distanza
      */
-    *latitude = strtod(strtok(NULL, SEPARATOR_TOKENIZER), NULL)/100;
-    strcpy(latitudeLocation, strtok(NULL, SEPARATOR_TOKENIZER));
+    *latitude = strtod(strtok(NULL, NMEA_FORMAT_SEPARATOR), NULL)/100;
+    strcpy(latitudeLocation, strtok(NULL, NMEA_FORMAT_SEPARATOR));
     if(latitudeLocation[0] == 'S' || latitudeLocation[0] == 'W') {
         *latitude *= -1;
     }
 
-    *longitude = strtod(strtok(NULL, SEPARATOR_TOKENIZER), NULL)/100;
-    strcpy(longitudeLocation, strtok(NULL, SEPARATOR_TOKENIZER));
+    *longitude = strtod(strtok(NULL, NMEA_FORMAT_SEPARATOR), NULL)/100;
+    strcpy(longitudeLocation, strtok(NULL, NMEA_FORMAT_SEPARATOR));
     if(longitudeLocation[0] == 'S' || longitudeLocation[0] == 'W') {
         *longitude *= -1;
     }
-}
-
-double degreeToRadian(double degree) {
-    return degree * ((double) M_PI / 180);
-}
-
-double getDistance(double latitude, double longitude, double previousLatitude, double previousLongitude){
-    //TODO rinominare "dLat" in "differenceLatitude" e "dLon" in "differenceLongitude"?
-
-    double dLat = degreeToRadian(latitude - previousLatitude);
-    double dLon = degreeToRadian(longitude - previousLongitude);
-    latitude = degreeToRadian(latitude);
-    previousLatitude = degreeToRadian(previousLatitude);
-
-    double a = sin(dLat/2) * sin(dLat/2) +
-               sin(dLon/2) * sin(dLon/2) * cos(previousLatitude) * cos(latitude);
-    double c = 2 * atan2(sqrt(a), sqrt(1-a));
-
-    return RAGGIO_TERRA_METRI * c;
-}
-
-double getVelocity(double space, int time){
-    /* Spazio in metri, time in secondi m/s */
-    return space / time;
 }
 
 int exe(int fd_pfcToTransducers, FILE *fp_g18, FILE *lastRead, double *previousLatitude, double *previousLongitude, enum boolean *sigUsr, enum boolean *sigRestart) {

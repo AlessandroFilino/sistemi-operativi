@@ -1,6 +1,18 @@
-#ifndef path_h
-#define path_h
+#ifndef config_h
+#define config_h
 
+/* G18 */
+#define TEMPO                       1 /*1 secondo*/
+#define NMEA_FORMAT                 "$GPGLL"
+#define NMEA_FORMAT_SEPARATOR       ","
+#define MAX_SPEED_DIGITS            10
+#define MAX_LINE_LENGTH             150
+#define MAX_G18_FILE_LENGTH_DIGITS  10 /*Massimo numero di cifre della lunghezza in bytes del file g18.txt*/
+
+/* FILES CONFIGURATIONS */
+#define DEFAULT_PERMISSIONS 0660
+
+/* PATH */
 #define PATHNAME_BIN "../bin/"
 #define PATHNAME_LOG "../log/"
 #define PATHNAME_TEMP "../temp/"
