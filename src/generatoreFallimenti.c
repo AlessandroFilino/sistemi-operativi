@@ -42,6 +42,8 @@ int main(int argc, const char *argv[]) {
         //printf("%d, ", pfc);
 
         fallimenti = calcoloProb();
+	
+		//printf("%d, %d, %d - %d", pfcProcessPid[0], pfcProcessPid[1], pfcProcessPid[2], fallimenti.value);
 
 	  /*if(fallimenti.value >= 8 || fallimenti.value % 2 == 1) {
         	printf("pfc: %d - value: %d\n", pfc+1, fallimenti.value);
@@ -68,7 +70,7 @@ int main(int argc, const char *argv[]) {
             char message[] = concat(GENERATORE_FALLIMENTI_SIGCONT, "\n");
 
             //SIGCONT = riprende l'esecuzione di un programma dopo la sospensione
-		//kill(pfcProcessPid[pfc], SIGCONT);
+		kill(pfcProcessPid[pfc], SIGCONT);
             fprintf(failures, message, pfc+1);	
         }
 
@@ -95,8 +97,9 @@ int main(int argc, const char *argv[]) {
                 int pfcId;
                 int newFd;
 
+			printf("%s\n", buffer_newPid);
                 readNewFd(buffer_newPid, &pfcId, &newFd);
-                pfcProcessPid[pfcId] = newFd;
+                pfcProcessPid[pfcId] = newFd;		
 
                 memset(buffer_newPid, '\0', sizeof(char) * strlen(buffer_newPid));
             }
@@ -157,8 +160,8 @@ void readNewFd(char *buffer_newPid, int *pfcId, int *newPid) {
      *      newPid magari potrebbe raggiungere massimo 5 cifre.
      *      (Quanto può essere lungo un pid?)
      */
-    char temp_pfcId[10] = {0};
-    char temp_newPid[10] = {0};
+    char temp_pfcId[15] = {0};
+    char temp_newPid[15] = {0};
 
     tokenize(buffer_newPid, PFCDISCONNECTEDSWITCH_SEPARATOR, 2, temp_pfcId, temp_newPid);
 

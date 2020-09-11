@@ -13,7 +13,7 @@
 #include "../include/path.h"
 #include "../include/messages.h"
 
-enum boolean is_connected(int sock)
+enum boolean is_not_connected(int sock)
 {
     unsigned char buf;
     int err = recv(sock, &buf, 1, MSG_PEEK | MSG_DONTWAIT);
@@ -67,7 +67,7 @@ int main(int argc, const char *argv[]) {
             }
 
             memset(velocita_pfc2, '\0', sizeof(char) * 15);
-        } else if(is_connected(clientFd) && !PFC2terminated) {
+        } else if(is_not_connected(clientFd) && !PFC2terminated) {
 		close(clientFd);
 	
 		clientFd = accept(serverFd, clientSockAddrPtr, &clientLen);

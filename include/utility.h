@@ -30,6 +30,7 @@ enum boolean {FALSE, TRUE};
 FILE *openFile(const char* filename, const char* mode);
 int readLine(int fd, char *buffer, char delimiter);
 int createChild(int (*execv_function)(const char*, char* const*), char *filename, char **argv);
+double roundAndShiftLeft(double value, int shift);
 
 void createEmptyFile(char *filename, char *mode);
 void createSpecialFile(char *filename, mode_t mode, mode_t permissions);
@@ -41,6 +42,7 @@ int createClientAF_UNIXSocket(char *socketname, struct sockaddr_un* serverUNIXAd
 void connectSocket(int clientFd, const struct sockaddr* serverSockAddrPtr, socklen_t serverLen);
 void setFileFlags(int fd, unsigned int newFlags);
 
+enum boolean isInteger(double value);
 int numberOfDigits(int value);
 void removeLastChar(char *string);
 void tokenize(char *string, char *separator, int tokenNumber, ...);

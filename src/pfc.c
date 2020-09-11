@@ -24,12 +24,15 @@ void setSignalStatus(int signalReceived, enum boolean *PFC_sigUsr, enum boolean 
 
 //TODO convertire questa funzione in una generica scrittura sul file e inserirla in utility.c
 void addLastRead(long current_position, FILE *lastRead) {
+	unsigned long numberOfCharsRead = 0;
+	long lastReadPosition = 0;
+
     /* bufferPosition è un buffer che contiene la posizione letta da last_read sottoforma di stringa */
     char bufferPosition[MAX_G18_FILE_LENGTH_DIGITS] = {0};
-    //FILE *lastRead = openFile(FILENAME_LAST_READ, "r+");
 
-    unsigned long numberOfCharsRead = fread(bufferPosition, sizeof(char), MAX_G18_FILE_LENGTH_DIGITS, lastRead);
-    long lastReadPosition = strtol(bufferPosition, NULL, 10);
+	fseek(lastRead, 0, SEEK_SET);
+   	numberOfCharsRead = fread(bufferPosition, sizeof(char), MAX_G18_FILE_LENGTH_DIGITS, lastRead);
+    	lastReadPosition = strtol(bufferPosition, NULL, 10);
 
     //TODO gestire errore read == -1 (o in generale se read < 0)
     if(numberOfCharsRead == 0 || current_position > lastReadPosition) {
@@ -38,8 +41,6 @@ void addLastRead(long current_position, FILE *lastRead) {
         fprintf(lastRead, "%ld", current_position);
         fflush(lastRead);
     }
-
-    //fclose(lastRead);
 }
 
 void changePointerPosition(FILE *fp_g18, FILE *lastRead) {
@@ -126,9 +127,8 @@ enum boolean checkCorrectPosition(FILE *fp_g18, FILE *lastRead) {
 	return result;
 }
 
-//TODO changeSpeed() la tengo qui o in generatoreFallimenti?
 double changeSpeed(double speed) {
-    return (double) (((int) round(speed)) << 2);
+    return roundAndShiftLeft(speed, 2);
 }
 
 ssize_t readCorrectLine(char *buffer, size_t bufferLength, FILE *fp) {
@@ -272,6 +272,8 @@ int exe(int fd_pfcToTransducers, FILE *fp_g18, FILE *lastRead, double *previousL
         }
 
         if (*sigRestart) {
+		//usleep(1000 * 1000);
+
 		if(!checkCorrectPosition(fp_g18, lastRead)) {
             	changePointerPosition(fp_g18, lastRead);
             	setPreviousGeographicCoordinates(fp_g18, previousLatitude, previousLongitude);

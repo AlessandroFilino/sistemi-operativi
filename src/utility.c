@@ -4,6 +4,7 @@
 #include <string.h>
 #include <sys/stat.h>
 #include <stdarg.h>
+#include <math.h>
 #include "../include/utility.h"
 
 /*
@@ -55,6 +56,10 @@ int createChild(int (*execv_function)(const char*, char* const*), char *filename
     }
 
     return pid;
+}
+
+double roundAndShiftLeft(double value, int shift) {
+    return (double) (((int) round(value)) << shift);
 }
 
 void createEmptyFile(char *filename, char *mode) {
@@ -167,6 +172,12 @@ void connectSocket(int clientFd, const struct sockaddr* serverSockAddrPtr, sockl
 void setFileFlags(int fd, unsigned int newFlags) {
     int unsigned oldFlags = fcntl(fd, F_GETFL);
     fcntl(fd, F_SETFL, oldFlags | newFlags);
+}
+
+enum boolean isInteger(double value) {
+	return (ceil(value) == value)
+		? TRUE
+		: FALSE;
 }
 
 int numberOfDigits(int value) {

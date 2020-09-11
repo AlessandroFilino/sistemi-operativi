@@ -141,7 +141,21 @@ int main(int argc, const char * argv[]) {
         tempo++;
     }
 
-	wait(NULL);
+	int status;
+	int pid = wait(&status);
+
+        //Child process exited normally, through `return` or `exit`
+        if (WIFEXITED(status)) {
+            char name[50] = {0};
+
+            if(pid == transducers_socket_pid) {
+                strcpy(name, "transducers-socket"); 
+		} else {
+                snprintf(name, sizeof(char) * 10, "%d", pid);
+            }
+            
+            printf("transducers: Child process '%s' exited with %d status\n", name, WEXITSTATUS(status));
+        }
 
     //pfc1
     close(fd_PFC1pipe);

@@ -45,7 +45,6 @@
           zero. Altrimenti, se il processo è bloccato o zombie,
           restituisce il suo pid.
 */
-        
 
 int main(int argc, const char* argv[]) {
     int status;
@@ -62,55 +61,22 @@ int main(int argc, const char* argv[]) {
         fprintf(stderr, "%s\n", MAIN_INPUT_FNF_MESSAGE);
         exit(EXIT_FAILURE);
     }
-    
+
     createEmptyFile(FILENAME_LAST_READ, "w");
-    
-    /*
-    createEmptyFile(FILENAME_LAST_READ, "w");
-
-    char* transducers_argv[] = {"transducers", NULL};
-    int pid_transducers = createChild(&execv, "transducers", transducers_argv);
-
-    char* pfc1_argv[] = {"pfc1", filename_G18, NULL};
-    int pid_pfc1 = createChild(&execv, "pfc1", pfc1_argv);
-
-    char* pfc2_argv[] = {"pfc2", filename_G18, NULL};
-    int pid_pfc2 = createChild(&execv, "pfc2", pfc2_argv);
-
-    char* pfc3_argv[] = {"pfc3", filename_G18, NULL};
-    int pid_pfc3 = createChild(&execv, "pfc3", pfc3_argv);
-
-    char temp_pidPfc1[15] = {0};
-    char temp_pidPfc2[15] = {0};
-    char temp_pidPfc3[15] = {0};
-    snprintf(temp_pidPfc1, sizeof(char) * 10, "%d", pid_pfc1);
-    snprintf(temp_pidPfc2, sizeof(char) * 10, "%d", pid_pfc2);
-    snprintf(temp_pidPfc3, sizeof(char) * 10, "%d", pid_pfc3);
-
-    char* generatoreFallimenti_argv[] = {"generatoreFallimenti", temp_pidPfc1, temp_pidPfc2, temp_pidPfc3, NULL};
-    int pid_generatoreFallimenti = createChild(&execv, "generatoreFallimenti", generatoreFallimenti_argv);
-
-    for(int i=0; i<5; i++) {
-        pid = wait(&status);
-
-        if (WIFEXITED(status)) {
-
-            //Child process exited normally, through `return` or `exit`
-            printf("Child process %d exited with %d status\n", pid, WEXITSTATUS(status));
-        }
-    }
-
-    printf("generatoreFallimenti: %d\ntransducers: %d\npfc1: %d\npfc2: %d\npfc3: %d\n", pid_generatoreFallimenti, pid_transducers, pid_pfc1, pid_pfc2, pid_pfc3);
-    */
 
     char *transducers_argv[] = {"transducers", NULL};
     int transducers_pid = createChild(&execv, "transducers", transducers_argv);
 
     char *pfcDisconnectedSwitch_argv[] = {"pfcDisconnectedSwitch", filename_G18, NULL};
     int pfcDisconnectedSwitch_pid = createChild(&execv, "pfcDisconnectedSwitch", pfcDisconnectedSwitch_argv);
-
-    //usleep(1000 * 800);
-	sleep(1);
+	
+	//La sleep permette a PFC1, PFC2 e PFC3 di scrivere un valore 
+	//nei rispettivi file di log consentendo una lettura valida
+	//al processo WES 
+	
+     
+    //sleep(1);
+	usleep(1000 * 800);
 
     char *wes_argv[] = {"wes", NULL};
     int wes_pid = createChild(&execv, "wes", wes_argv);

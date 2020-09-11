@@ -134,16 +134,17 @@ int main(int argc, const char *argv[]) {
 		    fflush(switchLog);
 
             } else if (strcmp(error, WES_MESSAGE_SUCCESS) != 0) {
-                pfcNumber = getErrorInfo(error);
-                pid_pfc = pfcProcessPid[pfcNumber - 1];
+                 /*
+                   	kill(pidFiglio, 0) restituisce 0 se esiste un processo
+                   	con pid_pfc uguale a pidFiglio, altrimenti -1
 
-
-                /*
-                 * kill(pidFiglio, 0) restituisce 0 se esiste un processo
-                 * con pid_pfc uguale a pidFiglio, altrimenti -1
+				if(kill(pid_pfc, 0) == 0)
                  */
-                //if(kill(pid_pfc, 0) == 0) {
-                    //il processo esiste
+
+			char sign;
+			pfcNumber = 0;
+			getErrorInfo(error, &sign, &pfcNumber);
+                  pid_pfc = pfcProcessPid[pfcNumber - 1];
 
 			char status = 0;	
 			char path[25] = {0};
@@ -152,21 +153,8 @@ int main(int argc, const char *argv[]) {
 			FILE *proc = openFile(path, "r");
 			fscanf(proc, "%*d %*s %c", &status);
 
-			//printf("status: %c\n", status);
-			//fflush(stdout);
-
-			if(status == 'T') {
-				//il processo è bloccato
-                        char message[] = concat(PFCDISCONNECTEDSWITCH_MESSAGE_SIGCONT, "\n");
-
-                        kill(pid_pfc, SIGCONT);
-                        fprintf(switchLog, message, pfcNumber);
-
-				printf("error = %s, status = %c\n", error, status);
-				fflush(stdout);
-
-			} else if(status == 'Z') {
-                    //il processo non esiste più
+			if(status == 'Z') {
+                    //il processo e' uno zombie
 		        
 			  wait(NULL);
 
@@ -180,16 +168,33 @@ int main(int argc, const char *argv[]) {
                     fprintf(switchLog, messagePfcCreated, pfcNumber);
 
                     //invio nuovo pid a GeneratoreFallimenti
-                    char messageNewPid[PFCDISCONNECTEDSWITCH_MESSAGE_MAX_LENGTH];
-                    snprintf(messageNewPid, sizeof(char) * PFCDISCONNECTEDSWITCH_MESSAGE_MAX_LENGTH, "%d%s%d", pfcNumber, PFCDISCONNECTEDSWITCH_SEPARATOR, newPid);
-                    write(generatoreFallimentiPipe, messageNewPid, sizeof(char) * PFCDISCONNECTEDSWITCH_MESSAGE_MAX_LENGTH);
+                    char messageNewPid[PFCDISCONNECTEDSWITCH_MESSAGE_MAX_LENGTH + 1];
+                    snprintf(messageNewPid, sizeof(char) * PFCDISCONNECTEDSWITCH_MESSAGE_MAX_LENGTH, "%d%s%d\n", pfcNumber, PFCDISCONNECTEDSWITCH_SEPARATOR, newPid);
+                    write(generatoreFallimentiPipe, messageNewPid, sizeof(char) * strlen(messageNewPid));
                     printf("messageNewPid: %s\n", messageNewPid);
 			  fflush(stdout);
 
                     char messageGeneratoreFallimenti[] = concat(PFCDISCONNECTEDSWITCH_MESSAGE_GENERATORE_FALLIMENTI, "\n");
                     fprintf(switchLog, messageGeneratoreFallimenti, pfcNumber);
 			  fflush(switchLog);
-                }
+                } else if(status == 'T' || sign == 'P') {
+				/*
+					il processo potrebbe essere:
+						- bloccato
+						- in esecuzione ma con il valore della
+						  velocita modificato da SIGURS1
+						- in esecuzione ma non sincronizzato con
+						  il valore di last_read degli altri due
+						  pfc
+				*/
+                        char message[] = concat(PFCDISCONNECTEDSWITCH_MESSAGE_SIGCONT, "\n");
+
+                        kill(pid_pfc, SIGCONT);
+                        fprintf(switchLog, message, pfcNumber);
+
+				printf("error = %s, status = %c\n", error, status);
+				fflush(stdout);
+			} 
             }
 
             memset(error, '\0', sizeof(char) * strlen(error));
@@ -215,7 +220,7 @@ int main(int argc, const char *argv[]) {
     }
  */
 
-int getErrorInfo(char *error) {
+/*int getErrorInfo(char *error) {
     unsigned long size = strlen(error);
 
     int result = 0;
@@ -227,5 +232,23 @@ int getErrorInfo(char *error) {
     }
 
     return result;
+}*/
+
+void getErrorInfo(char *error, char *sign, int *pfcNumber) {
+    char temp_pfc[15] = {0};
+    char temp_sign[15] = {0};
+    char temp[15] = {0};
+
+    tokenize(error, "-", 3, temp, temp_pfc, temp_sign);
+    *sign = temp_sign[0];
+
+    unsigned long size = strlen(temp_pfc);
+
+    char *endPointer = &temp_pfc[size-1];	
+
+    while(*endPointer >= '0' && *endPointer <= '9') {
+        *pfcNumber = (*pfcNumber) * 10 + (*endPointer - '0');
+        endPointer--;
+    }
 }
 

@@ -1,5 +1,5 @@
 #!/bin/bash
-INPUT="../doc/G18-test.txt"
+INPUT="../doc/G18.txt"
 
 make
 cd bin
