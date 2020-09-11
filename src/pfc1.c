@@ -38,9 +38,17 @@ int main(int argc, const char * argv[]) {
 
     numberOfCharsRead = setPreviousGeographicCoordinates(fp_g18, &previousLatitude, &previousLongitude);
 
+    char test[20] = {0};
+
     while(numberOfCharsRead != -1) {
         //TODO usare sleep(1)
-        usleep((1 * 1000) * 100); //1000 millisecondi = 1 secondo
+        usleep((1 * 1000) * 1000); //1000 millisecondi = 1 secondo
+
+	  /*fseek(lastRead, 0, SEEK_SET);
+	  fread(test, sizeof(char), 7, lastRead);
+	  fseek(lastRead, 0, SEEK_SET);
+	  printf("pfc1: %s\n", test);
+	  fflush(stdout);*/
 
         numberOfCharsRead = exe(transducersPipe, fp_g18, lastRead, &previousLatitude, &previousLongitude, &PFC1_sigUsr, &PFC1_sigRestart);
     }

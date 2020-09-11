@@ -4,6 +4,7 @@
 #include <fcntl.h>
 #include <sys/socket.h>
 #include <sys/un.h>
+#include <signal.h>
 #include "../include/utility.h"
 #include "../include/pfc.h"
 #include "../include/path.h"
@@ -38,7 +39,13 @@ int main(int argc, const char * argv[]) {
 
     while(numberOfCharsRead != -1) {
         //TODO usare sleep(1)
-        usleep((1 * 1000) * 100); //1000 millisecondi = 1 secondo
+        usleep((1 * 1000) * 1000); //1000 millisecondi = 1 secondo
+
+	  /*fseek(lastRead, 0, SEEK_SET);
+	  fread(test, sizeof(char), 7, lastRead);
+	  fseek(lastRead, 0, SEEK_SET);
+	  printf("pfc2: %s\n", test);
+	  fflush(stdout);*/
 
         numberOfCharsRead = exe(clientFd, fp_g18, lastRead, &previousLatitude, &previousLongitude, &PFC2_sigusr, &PFC2_sigstop);
     }

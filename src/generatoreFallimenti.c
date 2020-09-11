@@ -5,6 +5,7 @@
 #include <signal.h>
 #include <time.h>
 #include <string.h>
+#include <sys/wait.h>
 #include "../include/generatoreFallimenti.h"
 #include "../include/utility.h"
 #include "../include/path.h"
@@ -35,19 +36,23 @@ int main(int argc, const char *argv[]) {
     };
 
     while(!terminated) {
-        usleep((1 * 1000) * 100); //100 millisecondi
+        usleep((1 * 1000) * 1000); //100 millisecondi
 
         pfc = rand() % 3;
         //printf("%d, ", pfc);
 
         fallimenti = calcoloProb();
-        //printf("\npfc: %d - value: %d\n\n", pfc+1, fallimenti.value);
+
+	  /*if(fallimenti.value >= 8 || fallimenti.value % 2 == 1) {
+        	printf("pfc: %d - value: %d\n", pfc+1, fallimenti.value);
+ 	  	fflush(stdout);
+	  }*/
 
         if (fallimenti.value & 1u) {
             char message[] = concat(GENERATORE_FALLIMENTI_SIGSTOP, "\n");
 
             //SIGSTOP = sospensione da dentro un programma
-            //kill(pfcProcessPid[pfc], SIGSTOP);
+            kill(pfcProcessPid[pfc], SIGSTOP);
             fprintf(failures, message, pfc+1);
         }
 
@@ -55,32 +60,16 @@ int main(int argc, const char *argv[]) {
             char message[] = concat(GENERATORE_FALLIMENTI_SIGINT, "\n");
 
             //SIGINT = quando l'utente digita ctrl-c
-            //kill(pfcProcessPid[pfc], SIGINT);
+            kill(pfcProcessPid[pfc], SIGINT);
             fprintf(failures, message, pfc+1);
         }
 
         if (fallimenti.value & 4u) {
             char message[] = concat(GENERATORE_FALLIMENTI_SIGCONT, "\n");
 
-            /*if(kill(pfcProcessPid[pfc], 0) == 0) {
-                //il processo esiste
-
-                int status = 0;
-                int result = 0;
-                result = waitpid(pfcProcessPid[pfc], &status, WNOHANG);
-
-                if(WIFSTOPPED(status) != 0) {
-                    //il processo è bloccato
-                    char message[] = concat(PFCDISCONNECTEDSWITCH_MESSAGE_SIGCONT, "\n");
-
-                    //SIGCONT = riprende l'esecuzione di un programma dopo la sospensione
-                    kill(pfcProcessPid[pfc], SIGCONT);
-                    fprintf(failures, message, pfc+1);
-                }
-
-                printf("pid = %d, waitpid = %d, status = %d, stopped = %d\n", pfcProcessPid[pfc], result, status, WIFSTOPPED(status));
-                fflush(stdout);
-            }*/
+            //SIGCONT = riprende l'esecuzione di un programma dopo la sospensione
+		//kill(pfcProcessPid[pfc], SIGCONT);
+            fprintf(failures, message, pfc+1);	
         }
 
         if (fallimenti.value & 8u) {
@@ -90,6 +79,11 @@ int main(int argc, const char *argv[]) {
             kill(pfcProcessPid[pfc], SIGUSR1);
             fprintf(failures, message, pfc+1);
         }
+
+	  if(fallimenti.value != 0) {
+	  	fprintf(failures, "\n");
+	  	fflush(failures);
+	  }
 
         numberOfCharsRead = readLine(fd_pipe, buffer_newPid, MESSAGES_SEPARATOR);
         if(numberOfCharsRead > 0) {

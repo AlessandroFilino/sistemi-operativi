@@ -27,9 +27,11 @@ int main(int argc, const char *argv[]) {
     int numberOfCharsRead = 0;
     enum boolean terminated = FALSE;
 
+    //char lastRead[20] = {0};
+    //FILE *last_read = openFile(FILENAME_LAST_READ, "r");
 
     while(!terminated) {
-        usleep((1 * 1000) * 100); //100 millisecondi
+        usleep((1 * 1000) * 1000); //100 millisecondi
 
         /*
          * TODO: Come potrebbe succedere nel transducer, leggendo da un
@@ -71,49 +73,120 @@ int main(int argc, const char *argv[]) {
             speedPFC2 = strtod(bufferPFC2, NULL);
             speedPFC3 = strtod(bufferPFC3, NULL);
 
+		/*
+			Se ci sono velocita uguali a -1, basta controllare
+			i casi in cui sono tutti e tre a -1 oppure se ci sono
+			esattamente 2 valori a -1. Se un solo valore e' a -1 e 
+			gli altri due sono uguali, viene inviato un messaggio 
+			di errore relativo al PFC con valore sbagliato, ovvero -1,
+			quindi non c'e' bisogno di inserire ulteriori controllari 
+			per quest'ultimo caso.
+
+			Se speedPFC1 == speedPFC2, controlliamo se valgono -1 e 
+			in caso affermativo inviamo un messaggio di emergenza. Altrimenti,
+			potrebbe succedere che:
+				- speedPFC1 == speedPFC2 == speedPFC2
+				- speedPFC1 == speedPFC2 != speedPFC2
+			In entrambi i casi, non c'e' bisogno di controlli.
+
+			Se speedPFC3 == speedPFC1 != speedPFC2, controlliamo se speedPFC3 e 
+			speedPFC1 valgono -1 e in caso affermativo inviamo un messaggio di emergenza.
+
+			Se speedPFC1 != speedPFC2 == speedPFC3, controllamo se speedPFC2 e 
+			speedPFC3 valgono -1 e in caso affermativo inviamo un messaggio di emergenza.
+			
+		*/
             if (speedPFC1 == speedPFC2) {
-                if (speedPFC1 == speedPFC3) {
-                    char message[] = concat(WES_MESSAGE_SUCCESS, "\n");
-                    int messageLength = string_length(WES_MESSAGE_SUCCESS) + 1;
+			if(speedPFC1 == -1) {
+				char message[] = concat(WES_MESSAGE_EMERGENCY, "\n");
+                    	int messageLength = string_length(WES_MESSAGE_EMERGENCY) + 1;
+				
+                    	fprintf(status, "%s", message);
+                   	 write(wesPipe, message, sizeof(char) * messageLength);
 
-                    fprintf(status, "%s", message);
-                    write(wesPipe, message, sizeof(char) * messageLength);
+                    	//printf("%s - (%.2f, %.2f, %.2f) - %s", lastRead, speedPFC1, speedPFC2, speedPFC3, message);
+			   	printf("(%.2f, %.2f, %.2f) - %s", speedPFC1, speedPFC2, speedPFC3, message);
+			}
+                else if (speedPFC1 == speedPFC3) {
+                    	char message[] = concat(WES_MESSAGE_SUCCESS, "\n");
+                    	int messageLength = string_length(WES_MESSAGE_SUCCESS) + 1;
+				
+                    	fprintf(status, "%s", message);
+                   	 write(wesPipe, message, sizeof(char) * messageLength);
 
-                    printf("(%.2f, %.2f, %.2f) - %s", speedPFC1, speedPFC2, speedPFC3, message);
+                    	//printf("%s - (%.2f, %.2f, %.2f) - %s", lastRead, speedPFC1, speedPFC2, speedPFC3, message);
+			   	printf("(%.2f, %.2f, %.2f) - %s", speedPFC1, speedPFC2, speedPFC3, message);
                 } else {
-                    char message[] = concat(WES_MESSAGE_PFC3_ERROR, "\n");
-                    int messageLength = string_length(WES_MESSAGE_PFC3_ERROR) + 1;
+                    	char message[] = concat(WES_MESSAGE_PFC3_ERROR, "\n");
+                    	int messageLength = string_length(WES_MESSAGE_PFC3_ERROR) + 1;
 
-                    fprintf(status, "%s", message);
-                    write(wesPipe, message, sizeof(char) * messageLength);
+                    	fprintf(status, "%s", message);
+                    	write(wesPipe, message, sizeof(char) * messageLength);
 
-                    printf("(%.2f, %.2f, %.2f) - %s", speedPFC1, speedPFC2, speedPFC3, message);
-                }
+                    	//printf("%s - (%.2f, %.2f, %.2f) - %s", lastRead, speedPFC1, speedPFC2, speedPFC3, message);
+			  	printf("(%.2f, %.2f, %.2f) - %s", speedPFC1, speedPFC2, speedPFC3, message);
+                }	
             } else {
                 if (speedPFC1 == speedPFC3) {
-                    char message[] = concat(WES_MESSAGE_PFC2_ERROR, "\n");
-                    int messageLength = string_length(WES_MESSAGE_PFC2_ERROR) + 1;
+			char message[50] = {0};
+			int messageLength = 0;
 
+			if(speedPFC3 == -1) {
+				strcpy(message, concat(WES_MESSAGE_EMERGENCY, "\n"));
+                    	messageLength = string_length(WES_MESSAGE_EMERGENCY) + 1;
+			} else {
+                    	strcpy(message, concat(WES_MESSAGE_PFC2_ERROR, "\n"));
+                    	messageLength = string_length(WES_MESSAGE_PFC2_ERROR) + 1;
+			}
                     fprintf(status, "%s", message);
                     write(wesPipe, message, sizeof(char) * messageLength);
 
-                    //printf("(%.2f, %.2f, %.2f) - %s", speedPFC1, speedPFC2, speedPFC3, message);
+                    //printf("%s - (%.2f, %.2f, %.2f) - %s", lastRead, speedPFC1, speedPFC2, speedPFC3, message);
+			  printf("(%.2f, %.2f, %.2f) - %s", speedPFC1, speedPFC2, speedPFC3, message);
                 } else if (speedPFC2 == speedPFC3) {
-                    char message[] = concat(WES_MESSAGE_PFC1_ERROR, "\n");
-                    int messageLength = string_length(WES_MESSAGE_PFC1_ERROR) + 1;
+			char message[50] = {0};
+			int messageLength = 0;
+
+			if(speedPFC3 == -1) {
+				strcpy(message, concat(WES_MESSAGE_EMERGENCY, "\n"));
+                    	messageLength = string_length(WES_MESSAGE_EMERGENCY) + 1;
+			} else {
+                    	strcpy(message, concat(WES_MESSAGE_PFC1_ERROR, "\n"));
+                    	messageLength = string_length(WES_MESSAGE_PFC1_ERROR) + 1;
+			}
 
                     fprintf(status, "%s", message);
                     write(wesPipe, message, sizeof(char) * messageLength);
 
-                    printf("(%.2f, %.2f, %.2f) - %s", speedPFC1, speedPFC2, speedPFC3, message);
+                    //printf("%s - (%.2f, %.2f, %.2f) - %s", lastRead, speedPFC1, speedPFC2, speedPFC3, message);
+			    printf("(%.2f, %.2f, %.2f) - %s", speedPFC1, speedPFC2, speedPFC3, message);
                 } else {
-                    char message[] = concat(WES_MESSAGE_EMERGENCY, "\n");
-                    int messageLength = string_length(WES_MESSAGE_EMERGENCY) + 1;
+				char message[50] = {0};
+				int messageLength = 0;
+
+				/* --> questa cascata di if non serve perche quando i valori sono tutti e tre diversi,
+					 verra inviato un messaggio di EMERGENCY in qualsiasi caso, sia che ci siano
+					 valori uguali a -1, siano che non ci siano.
+
+				if(speedPFC1 == -1) {
+					strcpy(message, concat(WES_MESSAGE_PFC1_ERROR, "\n"));
+                    		messageLength = string_length(WES_MESSAGE_PFC1_ERROR) + 1;
+				} else if(speedPFC2 == -1) {
+					strcpy(message, concat(WES_MESSAGE_PFC2_ERROR, "\n"));
+                    		messageLength = string_length(WES_MESSAGE_PFC2_ERROR) + 1;
+				} if(speedPFC3 == -1) {
+					strcpy(message, concat(WES_MESSAGE_PFC3_ERROR, "\n"));
+                    		messageLength = string_length(WES_MESSAGE_PFC3_ERROR) + 1;
+				} else {
+					strcpy(message, concat(WES_MESSAGE_EMERGENCY, "\n"));
+				      messageLength = string_length(WES_MESSAGE_EMERGENCY) + 1;
+				}*/
 
                     fprintf(status, "%s", message);
                     write(wesPipe, message, sizeof(char) * messageLength);
 
-                    printf("(%.2f, %.2f, %.2f) - %s", speedPFC1, speedPFC2, speedPFC3, message);
+                    //printf("%s - (%.2f, %.2f, %.2f) - %s", lastRead, speedPFC1, speedPFC2, speedPFC3, message);
+			    printf("(%.2f, %.2f, %.2f) - %s", speedPFC1, speedPFC2, speedPFC3, message);
                 }
             }
         }

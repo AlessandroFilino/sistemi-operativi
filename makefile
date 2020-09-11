@@ -6,7 +6,7 @@ LOG_DIR=log
 TEMP_DIR=temp
 VERBOSE=@
 
-all: create-dir main pfcDisconnectedSwitch generatoreFallimenti pfc1 pfc2 pfc3 transducers wes clean-objects
+all: create-dir main pfcDisconnectedSwitch generatoreFallimenti pfc1 pfc2 pfc3 transducers transducers-socket wes clean-objects
 
 create-dir :
 	$(VERBOSE) mkdir -p $(LOG_DIR) $(TEMP_DIR) $(BIN_DIR) $(OBJ_DIR)
@@ -33,25 +33,25 @@ generatoreFallimenti.o : $(SRC_DIR)/generatoreFallimenti.c $(HEADER_DIR)/generat
 
 
 pfc1 : pfc1.o pfc.o utility.o
-	$(VERBOSE) gcc -o $(BIN_DIR)/pfc1 $(OBJ_DIR)/pfc1.o $(OBJ_DIR)/pfc.o $(OBJ_DIR)/utility.o
+	$(VERBOSE) gcc -o $(BIN_DIR)/pfc1 $(OBJ_DIR)/pfc1.o $(OBJ_DIR)/pfc.o $(OBJ_DIR)/utility.o -lm
 
 pfc1.o : $(SRC_DIR)/pfc1.c $(HEADER_DIR)/pfc.h $(HEADER_DIR)/utility.h $(HEADER_DIR)/path.h $(HEADER_DIR)/messages.h
 	$(VERBOSE) gcc -c $(SRC_DIR)/pfc1.c -o $(OBJ_DIR)/pfc1.o
 
 pfc2 : pfc2.o pfc.o utility.o
-	$(VERBOSE) gcc -o $(BIN_DIR)/pfc2 $(OBJ_DIR)/pfc2.o $(OBJ_DIR)/pfc.o $(OBJ_DIR)/utility.o
+	$(VERBOSE) gcc -o $(BIN_DIR)/pfc2 $(OBJ_DIR)/pfc2.o $(OBJ_DIR)/pfc.o $(OBJ_DIR)/utility.o -lm
 
 pfc2.o : $(SRC_DIR)/pfc2.c $(HEADER_DIR)/pfc.h $(HEADER_DIR)/utility.h $(HEADER_DIR)/path.h $(HEADER_DIR)/messages.h
 	$(VERBOSE) gcc -c $(SRC_DIR)/pfc2.c -o $(OBJ_DIR)/pfc2.o
 
 pfc3 : pfc3.o pfc.o utility.o
-	$(VERBOSE) gcc -o $(BIN_DIR)/pfc3 $(OBJ_DIR)/pfc3.o $(OBJ_DIR)/pfc.o $(OBJ_DIR)/utility.o
+	$(VERBOSE) gcc -o $(BIN_DIR)/pfc3 $(OBJ_DIR)/pfc3.o $(OBJ_DIR)/pfc.o $(OBJ_DIR)/utility.o -lm
 
 pfc3.o : $(SRC_DIR)/pfc3.c $(HEADER_DIR)/pfc.h $(HEADER_DIR)/utility.h $(HEADER_DIR)/path.h $(HEADER_DIR)/messages.h
 	$(VERBOSE) gcc -c $(SRC_DIR)/pfc3.c -o $(OBJ_DIR)/pfc3.o
 
-pfc.o : $(SRC_DIR)/pfc.c $(HEADER_DIR)/pfc.h $(HEADER_DIR)/utility.h
-	$(VERBOSE) gcc -c $(SRC_DIR)/pfc.c -o $(OBJ_DIR)/pfc.o
+pfc.o : $(SRC_DIR)/pfc.c $(HEADER_DIR)/pfc.h $(HEADER_DIR)/utility.h $(HEADER_DIR)/path.h
+	$(VERBOSE) gcc -c $(SRC_DIR)/pfc.c -lm -o $(OBJ_DIR)/pfc.o
 
 
 transducers : transducers.o utility.o
@@ -59,6 +59,13 @@ transducers : transducers.o utility.o
 
 transducers.o : $(SRC_DIR)/transducers.c $(HEADER_DIR)/transducers.h $(HEADER_DIR)/utility.h $(HEADER_DIR)/path.h $(HEADER_DIR)/messages.h
 	$(VERBOSE) gcc -c $(SRC_DIR)/transducers.c -o $(OBJ_DIR)/transducers.o
+
+
+transducers-socket : transducers-socket.o utility.o
+	$(VERBOSE) gcc -o $(BIN_DIR)/transducers-socket $(OBJ_DIR)/transducers-socket.o $(OBJ_DIR)/utility.o
+
+transducers-socket.o : $(SRC_DIR)/transducers-socket.c $(HEADER_DIR)/transducers.h $(HEADER_DIR)/utility.h $(HEADER_DIR)/path.h $(HEADER_DIR)/messages.h
+	$(VERBOSE) gcc -c $(SRC_DIR)/transducers-socket.c -o $(OBJ_DIR)/transducers-socket.o
 
 
 wes: wes.o utility.o

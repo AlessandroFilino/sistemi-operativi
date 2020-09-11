@@ -8,6 +8,7 @@
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <sys/un.h>
+#include <sys/wait.h>
 #include "../include/utility.h"
 #include "../include/transducers.h"
 #include "../include/path.h"
@@ -25,7 +26,10 @@ int main(int argc, const char * argv[]) {
     enum boolean PFC1terminated = FALSE;
 
     //pfc2
-    int serverFd, clientFd;
+    char *transducers_socket_argv[] = {"transducers-socket", NULL};
+    int transducers_socket_pid = createChild(&execv, "transducers-socket", transducers_socket_argv);
+
+    /*int serverFd, clientFd;
     unsigned int clientLen;
     struct sockaddr* clientSockAddrPtr;
 
@@ -35,7 +39,7 @@ int main(int argc, const char * argv[]) {
 
     FILE *speedPFC2Log = openFile(FILENAME_SPEEDPFC2_LOG, "w");
     char velocita_pfc2[15] = {0};
-    enum boolean PFC2terminated = FALSE;
+    enum boolean PFC2terminated = FALSE;*/
 
     //pfc3
     int fd_PFC3File = open(FILENAME_PFC3_FILE, O_RDONLY | O_CREAT, 0660);
@@ -55,7 +59,9 @@ int main(int argc, const char * argv[]) {
      * MESSAGES_SEPARATOR
      */
 
-    while(PFC1terminated == FALSE || PFC2terminated == FALSE || PFC3terminated == FALSE) {
+
+    //while(PFC1terminated == FALSE || PFC2terminated == FALSE || PFC3terminated == FALSE) {
+	while(PFC1terminated == FALSE || PFC3terminated == FALSE) {
 
         //TODO usare usleep(5000) --> sleep di 5 millisecondi
         usleep((1 * 1000) * 5); //100 millisecondi
@@ -88,12 +94,11 @@ int main(int argc, const char * argv[]) {
             if(strcmp(velocita_pfc1, APPLICATION_ENDED_MESSAGE) == 0) {
                 PFC1terminated = TRUE;
             }
-
             memset(velocita_pfc1, '\0', sizeof(char) * 15);
         }
 
         //pfc2
-        numberOfCharsRead = readLine(clientFd, velocita_pfc2, MESSAGES_SEPARATOR);
+        /*numberOfCharsRead = readLine(clientFd, velocita_pfc2, MESSAGES_SEPARATOR);
         //printf("pfc2 - transducer: %s (%d)\n", velocita_pfc2, tempo);
         if(PFC2terminated == FALSE && numberOfCharsRead > 0) {
             fprintf(speedPFC2Log, "%s", velocita_pfc2);
@@ -109,7 +114,13 @@ int main(int argc, const char * argv[]) {
             }
 
             memset(velocita_pfc2, '\0', sizeof(char) * 15);
-        }
+        } else if(is_connected(clientFd)) {
+		printf("enter\n");
+		close(clientFd);
+	
+		clientFd = accept(serverFd, clientSockAddrPtr, &clientLen);
+    		setFileFlags(clientFd, O_NONBLOCK);
+	  }*/
 
         //pfc3
         numberOfCharsRead = readLine(fd_PFC3File, velocita_pfc3, MESSAGES_SEPARATOR);
@@ -119,9 +130,6 @@ int main(int argc, const char * argv[]) {
             fflush(speedPFC3Log);
 
             removeLastChar(velocita_pfc3);
-
-            //printf("pfc3 - transducer: (%d) %s\n", tempo, velocita_pfc3);
-            //fflush(stdout);
 
             if(strcmp(velocita_pfc3, APPLICATION_ENDED_MESSAGE) == 0) {
                 PFC3terminated = TRUE;
@@ -133,14 +141,16 @@ int main(int argc, const char * argv[]) {
         tempo++;
     }
 
+	wait(NULL);
+
     //pfc1
     close(fd_PFC1pipe);
     fclose(speedPFC1Log);
 
     //pfc2
-    close(clientFd);
+    /*close(clientFd);
     close(serverFd);
-    fclose(speedPFC2Log);
+    fclose(speedPFC2Log);*/
 
     //pfc3
     close(fd_PFC3File);

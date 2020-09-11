@@ -13,6 +13,7 @@ cmake-build-debug
 log/
 temp/
 bin/
+doc/
 
 #ignorare il file test.c perchè serve solo a fare test veloci
 src/test.c

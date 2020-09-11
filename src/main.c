@@ -3,6 +3,7 @@
 #include <unistd.h>
 #include <fcntl.h>
 #include <string.h>
+#include <sys/wait.h>
 #include "../include/utility.h"
 #include "../include/main.h"
 #include "../include/path.h"
@@ -49,7 +50,7 @@
 int main(int argc, const char* argv[]) {
     int status;
     int pid = 0;
-    char filename_G18[15] = {0};
+    char filename_G18[25] = {0};
     strcpy(filename_G18, argv[1]);
 
     if(system(remove_files_from(PATHNAME_TEMP)) || system(remove_files_from(PATHNAME_LOG)) != 0) {
@@ -108,7 +109,8 @@ int main(int argc, const char* argv[]) {
     char *pfcDisconnectedSwitch_argv[] = {"pfcDisconnectedSwitch", filename_G18, NULL};
     int pfcDisconnectedSwitch_pid = createChild(&execv, "pfcDisconnectedSwitch", pfcDisconnectedSwitch_argv);
 
-    sleep(1);
+    //usleep(1000 * 800);
+	sleep(1);
 
     char *wes_argv[] = {"wes", NULL};
     int wes_pid = createChild(&execv, "wes", wes_argv);

@@ -3,6 +3,8 @@
 #include <string.h>
 #include <math.h>
 #include <unistd.h>
+#include <signal.h>
+#include "../include/path.h"
 #include "../include/pfc.h"
 #include "../include/utility.h"
 
@@ -13,12 +15,7 @@ void setSignalStatus(int signalReceived, enum boolean *PFC_sigUsr, enum boolean 
             break;
         }
 
-        case SIGUSR2:
-
         case SIGCONT: {
-            printf("ciaociaociao - %d\n", signalReceived);
-            fflush(stdout);
-            
             *PFC_sigRestart = TRUE;
             break;
         }
@@ -26,9 +23,10 @@ void setSignalStatus(int signalReceived, enum boolean *PFC_sigUsr, enum boolean 
 }
 
 //TODO convertire questa funzione in una generica scrittura sul file e inserirla in utility.c
-void addLastRead(FILE *lastRead, long current_position) {
+void addLastRead(long current_position, FILE *lastRead) {
     /* bufferPosition è un buffer che contiene la posizione letta da last_read sottoforma di stringa */
     char bufferPosition[MAX_G18_FILE_LENGTH_DIGITS] = {0};
+    //FILE *lastRead = openFile(FILENAME_LAST_READ, "r+");
 
     unsigned long numberOfCharsRead = fread(bufferPosition, sizeof(char), MAX_G18_FILE_LENGTH_DIGITS, lastRead);
     long lastReadPosition = strtol(bufferPosition, NULL, 10);
@@ -40,32 +38,92 @@ void addLastRead(FILE *lastRead, long current_position) {
         fprintf(lastRead, "%ld", current_position);
         fflush(lastRead);
     }
+
+    //fclose(lastRead);
 }
 
 void changePointerPosition(FILE *fp_g18, FILE *lastRead) {
+    long position = 0;
+    unsigned long numberOfCharsRead = 0;
+
     /* buffer_position è un buffer che contiene la posizione letta da lastRead sottoforma di stringa */
     char bufferPosition[MAX_G18_FILE_LENGTH_DIGITS] = {0};
 
-    long position = 0;
-    unsigned long numberOfCharsRead = fread(bufferPosition, sizeof(char), MAX_G18_FILE_LENGTH_DIGITS, lastRead);
+    if(fseek(lastRead, 0, SEEK_SET) < 0) {
+	fprintf(stderr, "changePointerPosition: errore nella prima fseek\n");
+    } else {
+	    numberOfCharsRead = fread(bufferPosition, sizeof(char), MAX_G18_FILE_LENGTH_DIGITS, lastRead);
 
-    if(numberOfCharsRead > 0) {
-        position = strtol(bufferPosition, NULL, 10);
-        fseek(fp_g18, position, SEEK_SET);
-    }
+	    if(numberOfCharsRead > 0) {
+		  position = strtol(bufferPosition, NULL, 10);
+		  if(fseek(fp_g18, position, SEEK_SET) < 0) {
+			fprintf(stderr, "changePointerPosition: errore nella seconda fseek\n");
+		  }
+	    } else {
+		fprintf(stderr, "changePointerPosition: numberOfCharsRead <= 0\n");
+	    }
+	}
 }
 
 int setPreviousGeographicCoordinates(FILE *fp_g18, double *previousLatitude, double *previousLongitude) {
     ssize_t read = 0;
     size_t bufferLength = MAX_LINE_LENGTH + 1;
     char *buffer = malloc(sizeof(char) * bufferLength);
+    int position = 0;
+    int offset = 0;
 
-    read = readCorrectLine(buffer, bufferLength, fp_g18);
-    getGeographicCoordinates(buffer, previousLatitude, previousLongitude);
 
+    if(ftell(fp_g18) < 50) {
+	position = SEEK_SET;
+	offset = 0;
+    } else {
+	position = SEEK_CUR;
+	offset = -50;
+    }
+
+	if(fseek(fp_g18, offset, position) < 0) {
+		fprintf(stderr, "setPreviousGeographicCoordinates: errore nella prima fseek\n");
+		return -1;
+	}
+
+	read = readCorrectLine(buffer, bufferLength, fp_g18);
+	//printf("///// %s ", buffer);
+
+	if(read < 0) {
+		fprintf(stderr, "setPreviousGeographicCoordinates: errore nella seconda fseek\n");
+	} else {
+	    	getGeographicCoordinates(buffer, previousLatitude, previousLongitude);
+	}
+	    
+    
     free(buffer);
 
     return read;
+}
+
+enum boolean checkCorrectPosition(FILE *fp_g18, FILE *lastRead) {
+    long position = 0;
+    unsigned long numberOfCharsRead = 0;
+    enum boolean result = FALSE;
+
+    /* buffer_position è un buffer che contiene la posizione letta da lastRead sottoforma di stringa */
+    char bufferPosition[MAX_G18_FILE_LENGTH_DIGITS] = {0};
+	
+	if(fseek(lastRead, 0, SEEK_SET) < 0) {
+		fprintf(stderr, "changePointerPosition: errore nella prima fseek\n");
+      } else {
+	    numberOfCharsRead = fread(bufferPosition, sizeof(char), MAX_G18_FILE_LENGTH_DIGITS, lastRead);
+
+	    if(numberOfCharsRead > 0) {
+		  position = strtol(bufferPosition, NULL, 10);
+
+		  if(position == ftell(fp_g18)) {
+			result = TRUE;
+		  }
+	    }
+	}
+
+	return result;
 }
 
 //TODO changeSpeed() la tengo qui o in generatoreFallimenti?
@@ -152,17 +210,28 @@ double getVelocity(double space, int time){
     return space / time;
 }
 
-int exe(int fd_pfcToTransducers, FILE *fp_g18, FILE *last_read, double *previousLatitude, double *previousLongitude, enum boolean *sigUsr, enum boolean *sigRestart) {
+int exe(int fd_pfcToTransducers, FILE *fp_g18, FILE *lastRead, double *previousLatitude, double *previousLongitude, enum boolean *sigUsr, enum boolean *sigRestart) {
     double latitude;
     double longitude;
     double distance;
     double velocity;
 
+	
+	/*if (*sigRestart) {
+            changePointerPosition(fp_g18, lastRead);
+            setPreviousGeographicCoordinates(fp_g18, previousLatitude, previousLongitude);
+            *sigRestart = FALSE;
+	}*/
+
     size_t lineLength = MAX_LINE_LENGTH + 1;
     char *line = malloc(sizeof(char) * lineLength);
     ssize_t read = readCorrectLine(line, lineLength, fp_g18);
 
+	//printf("%s\n", line);
+	//fflush(stdout);
+
     if (read > 0) {
+	//printf("%s - ", line);
         getGeographicCoordinates(line, &latitude, &longitude);
         distance = getDistance(latitude, longitude, *previousLatitude, *previousLongitude);
         velocity = getVelocity(distance, TEMPO);
@@ -172,6 +241,7 @@ int exe(int fd_pfcToTransducers, FILE *fp_g18, FILE *last_read, double *previous
             *sigUsr = FALSE;
         }
 
+	//printf("%.2f\n", velocity);
         int int_section = (int) velocity;
         int digits = numberOfDigits(int_section);
 
@@ -202,21 +272,23 @@ int exe(int fd_pfcToTransducers, FILE *fp_g18, FILE *last_read, double *previous
         }
 
         if (*sigRestart) {
-            changePointerPosition(fp_g18, last_read);
-            setPreviousGeographicCoordinates(fp_g18, previousLatitude, previousLongitude);
+		if(!checkCorrectPosition(fp_g18, lastRead)) {
+            	changePointerPosition(fp_g18, lastRead);
+            	setPreviousGeographicCoordinates(fp_g18, previousLatitude, previousLongitude);
+		}
+
             *sigRestart = FALSE;
-        } else {
+	} else {
             /*
              * TODO: sizeof(char) potrebbe essere eliminato in quanto
              *       la write scrive su un file leggendo da una stringa
              */
 
-            write(fd_pfcToTransducers, message, sizeof(char) * (messageLength + 1));
-            //printf("%s", message);
+            int t = write(fd_pfcToTransducers, message, sizeof(char) * (messageLength + 1));
 
             *previousLatitude = latitude;
             *previousLongitude = longitude;
-            addLastRead(last_read, ftell(fp_g18));
+            addLastRead(ftell(fp_g18), lastRead);
         }
 
         free(message);
