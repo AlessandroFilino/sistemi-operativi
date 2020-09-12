@@ -1,88 +1,91 @@
-BIN_DIR=bin
-OBJ_DIR=bin
-SRC_DIR=src
-HEADER_DIR=include
-LOG_DIR=log
-TEMP_DIR=temp
 VERBOSE=@
 
 all: create-dir main pfcDisconnectedSwitch generatoreFallimenti pfc1 pfc2 pfc3 transducers transducers-socket wes clean-objects
 
 create-dir :
-	$(VERBOSE) mkdir -p $(LOG_DIR) $(TEMP_DIR) $(BIN_DIR) $(OBJ_DIR)
+	$(VERBOSE) mkdir -p log temp bin
 
-main :  main.o utility.o
-	$(VERBOSE) gcc -o $(BIN_DIR)/main $(OBJ_DIR)/main.o $(OBJ_DIR)/utility.o -lm
+main : main.o utility.o utility-textfile.o
+	$(VERBOSE) gcc -o bin/main bin/main.o bin/utility.o bin/utility-textfile.o
 
-main.o : $(SRC_DIR)/main.c $(HEADER_DIR)/main.h $(HEADER_DIR)/utility.h $(HEADER_DIR)/config.h $(HEADER_DIR)/messages.h
-	$(VERBOSE) gcc -c $(SRC_DIR)/main.c -o $(OBJ_DIR)/main.o
-
-
-pfcDisconnectedSwitch : pfcDisconnectedSwitch.o utility.o
-	$(VERBOSE) gcc -o $(BIN_DIR)/pfcDisconnectedSwitch $(OBJ_DIR)/pfcDisconnectedSwitch.o $(OBJ_DIR)/utility.o -lm
-
-pfcDisconnectedSwitch.o : $(SRC_DIR)/pfcDisconnectedSwitch.c $(HEADER_DIR)/pfcDisconnectedSwitch.h $(HEADER_DIR)/utility.h $(HEADER_DIR)/config.h $(HEADER_DIR)/messages.h
-	$(VERBOSE) gcc -c $(SRC_DIR)/pfcDisconnectedSwitch.c -o $(OBJ_DIR)/pfcDisconnectedSwitch.o
+main.o : src/main.c include/main.h include/utility.h include/utility-textfile.h include/config.h include/messages.h
+	$(VERBOSE) gcc -c src/main.c -o bin/main.o
 
 
-generatoreFallimenti : generatoreFallimenti.o utility.o
-	$(VERBOSE) gcc -o $(BIN_DIR)/generatoreFallimenti $(OBJ_DIR)/generatoreFallimenti.o $(OBJ_DIR)/utility.o -lm
+pfcDisconnectedSwitch : pfcDisconnectedSwitch.o utility.o utility-textfile.o utility-ipc.o
+	$(VERBOSE) gcc -o bin/pfcDisconnectedSwitch bin/pfcDisconnectedSwitch.o bin/utility.o bin/utility-textfile.o bin/utility-ipc.o
 
-generatoreFallimenti.o : $(SRC_DIR)/generatoreFallimenti.c $(HEADER_DIR)/generatoreFallimenti.h $(HEADER_DIR)/utility.h $(HEADER_DIR)/config.h $(HEADER_DIR)/messages.h
-	$(VERBOSE) gcc -c $(SRC_DIR)/generatoreFallimenti.c -o $(OBJ_DIR)/generatoreFallimenti.o
-
-
-pfc1 : pfc1.o pfc.o utility.o
-	$(VERBOSE) gcc -o $(BIN_DIR)/pfc1 $(OBJ_DIR)/pfc1.o $(OBJ_DIR)/pfc.o $(OBJ_DIR)/utility.o -lm
-
-pfc1.o : $(SRC_DIR)/pfc1.c $(HEADER_DIR)/pfc.h $(HEADER_DIR)/utility.h $(HEADER_DIR)/config.h $(HEADER_DIR)/messages.h
-	$(VERBOSE) gcc -c $(SRC_DIR)/pfc1.c -o $(OBJ_DIR)/pfc1.o
-
-pfc2 : pfc2.o pfc.o utility.o
-	$(VERBOSE) gcc -o $(BIN_DIR)/pfc2 $(OBJ_DIR)/pfc2.o $(OBJ_DIR)/pfc.o $(OBJ_DIR)/utility.o -lm
-
-pfc2.o : $(SRC_DIR)/pfc2.c $(HEADER_DIR)/pfc.h $(HEADER_DIR)/utility.h $(HEADER_DIR)/config.h $(HEADER_DIR)/messages.h
-	$(VERBOSE) gcc -c $(SRC_DIR)/pfc2.c -o $(OBJ_DIR)/pfc2.o
-
-pfc3 : pfc3.o pfc.o utility.o
-	$(VERBOSE) gcc -o $(BIN_DIR)/pfc3 $(OBJ_DIR)/pfc3.o $(OBJ_DIR)/pfc.o $(OBJ_DIR)/utility.o -lm
-
-pfc3.o : $(SRC_DIR)/pfc3.c $(HEADER_DIR)/pfc.h $(HEADER_DIR)/utility.h $(HEADER_DIR)/config.h $(HEADER_DIR)/messages.h
-	$(VERBOSE) gcc -c $(SRC_DIR)/pfc3.c -o $(OBJ_DIR)/pfc3.o
-
-pfc.o : $(SRC_DIR)/pfc.c $(HEADER_DIR)/pfc.h $(HEADER_DIR)/utility.h $(HEADER_DIR)/config.h
-	$(VERBOSE) gcc -c $(SRC_DIR)/pfc.c -lm -o $(OBJ_DIR)/pfc.o
+pfcDisconnectedSwitch.o : src/pfcDisconnectedSwitch.c include/pfcDisconnectedSwitch.h include/utility.h include/utility-textfile.h include/utility-ipc.h include/config.h include/messages.h
+	$(VERBOSE) gcc -c src/pfcDisconnectedSwitch.c -o bin/pfcDisconnectedSwitch.o
 
 
-transducers : transducers.o utility.o
-	$(VERBOSE) gcc -o $(BIN_DIR)/transducers $(OBJ_DIR)/transducers.o $(OBJ_DIR)/utility.o -lm
+generatoreFallimenti : generatoreFallimenti.o utility.o utility-textfile.o utility-ipc.o
+	$(VERBOSE) gcc -o bin/generatoreFallimenti bin/generatoreFallimenti.o bin/utility.o bin/utility-textfile.o bin/utility-ipc.o
 
-transducers.o : $(SRC_DIR)/transducers.c $(HEADER_DIR)/transducers.h $(HEADER_DIR)/utility.h $(HEADER_DIR)/config.h $(HEADER_DIR)/messages.h
-	$(VERBOSE) gcc -c $(SRC_DIR)/transducers.c -o $(OBJ_DIR)/transducers.o
-
-
-transducers-socket : transducers-socket.o utility.o
-	$(VERBOSE) gcc -o $(BIN_DIR)/transducers-socket $(OBJ_DIR)/transducers-socket.o $(OBJ_DIR)/utility.o -lm
-
-transducers-socket.o : $(SRC_DIR)/transducers-socket.c $(HEADER_DIR)/transducers-socket.h $(HEADER_DIR)/utility.h $(HEADER_DIR)/config.h $(HEADER_DIR)/messages.h
-	$(VERBOSE) gcc -c $(SRC_DIR)/transducers-socket.c -o $(OBJ_DIR)/transducers-socket.o
+generatoreFallimenti.o : src/generatoreFallimenti.c include/generatoreFallimenti.h include/utility.h include/utility-textfile.h include/utility-ipc.h include/config.h include/messages.h
+	$(VERBOSE) gcc -c src/generatoreFallimenti.c -o bin/generatoreFallimenti.o
 
 
-wes: wes.o utility.o
-	$(VERBOSE) gcc -o $(BIN_DIR)/wes $(OBJ_DIR)/wes.o $(OBJ_DIR)/utility.o -lm
+pfc1 : pfc1.o pfc.o utility.o utility-textfile.o utility-ipc.o utility-math.o
+	$(VERBOSE) gcc -o bin/pfc1 bin/pfc1.o bin/pfc.o bin/utility.o bin/utility-textfile.o bin/utility-ipc.o bin/utility-math.o -lm
 
-wes.o: $(SRC_DIR)/wes.c $(HEADER_DIR)/wes.h $(HEADER_DIR)/utility.h $(HEADER_DIR)/config.h $(HEADER_DIR)/messages.h
-	$(VERBOSE) gcc -c $(SRC_DIR)/wes.c -o $(OBJ_DIR)/wes.o
+pfc1.o : src/pfc1.c include/pfc.h include/utility.h include/utility-textfile.h include/utility-ipc.h include/config.h include/messages.h
+	$(VERBOSE) gcc -c src/pfc1.c -o bin/pfc1.o
 
-utility.o : $(SRC_DIR)/utility.c $(HEADER_DIR)/utility.h
-	$(VERBOSE) gcc -c $(SRC_DIR)/utility.c -o $(OBJ_DIR)/utility.o
+pfc2 : pfc2.o pfc.o utility.o utility-textfile.o utility-ipc.o utility-math.o
+	$(VERBOSE) gcc -o bin/pfc2 bin/pfc2.o bin/pfc.o bin/utility.o bin/utility-textfile.o bin/utility-ipc.o bin/utility-math.o -lm
 
+pfc2.o : src/pfc2.c include/pfc.h include/utility.h include/utility-textfile.h include/utility-ipc.h include/config.h include/messages.h
+	$(VERBOSE) gcc -c src/pfc2.c -o bin/pfc2.o
+
+pfc3 : pfc3.o pfc.o utility.o utility-textfile.o utility-math.o
+	$(VERBOSE) gcc -o bin/pfc3 bin/pfc3.o bin/pfc.o bin/utility.o bin/utility-textfile.o bin/utility-math.o -lm
+
+pfc3.o : src/pfc3.c include/pfc.h include/utility.h include/utility-textfile.h include/config.h include/messages.h
+	$(VERBOSE) gcc -c src/pfc3.c -o bin/pfc3.o
+
+pfc.o : src/pfc.c include/pfc.h include/utility.h include/utility-math.h include/config.h
+	$(VERBOSE) gcc -c src/pfc.c -o bin/pfc.o
+
+
+transducers : transducers.o utility.o utility-textfile.o utility-ipc.o
+	$(VERBOSE) gcc -o bin/transducers bin/transducers.o bin/utility.o bin/utility-textfile.o bin/utility-ipc.o
+
+transducers.o : src/transducers.c include/transducers.h include/utility.h include/utility-textfile.h include/utility-ipc.h include/config.h include/messages.h
+	$(VERBOSE) gcc -c src/transducers.c -o bin/transducers.o
+
+
+transducers-socket : transducers-socket.o utility.o utility-textfile.o utility-ipc.o
+	$(VERBOSE) gcc -o bin/transducers-socket bin/transducers-socket.o bin/utility.o bin/utility-textfile.o bin/utility-ipc.o
+
+transducers-socket.o : src/transducers-socket.c include/transducers-socket.h include/utility.h include/utility-textfile.h include/utility-ipc.h include/config.h include/messages.h
+	$(VERBOSE) gcc -c src/transducers-socket.c -o bin/transducers-socket.o
+
+
+wes: wes.o utility.o utility-textfile.o utility-ipc.o
+	$(VERBOSE) gcc -o bin/wes bin/wes.o bin/utility.o bin/utility-textfile.o bin/utility-ipc.o
+
+wes.o: src/wes.c include/wes.h include/utility.h include/utility-textfile.h include/utility-ipc.h include/config.h include/messages.h
+	$(VERBOSE) gcc -c src/wes.c -o bin/wes.o
+
+
+utility.o : src/utility.c include/utility.h
+	$(VERBOSE) gcc -c src/utility.c -o bin/utility.o
+
+utility-ipc.o : src/utility-ipc.c include/utility.h include/utility-ipc.h
+	$(VERBOSE) gcc -c src/utility-ipc.c -o bin/utility-ipc.o
+
+utility-math.o : src/utility-math.c include/utility-math.h
+	$(VERBOSE) gcc -c src/utility-math.c -o bin/utility-math.o
+
+utility-textfile.o : src/utility-textfile.c include/utility-textfile.h
+	$(VERBOSE) gcc -c src/utility-textfile.c -o bin/utility-textfile.o
 
 clean : 
-	$(VERBOSE) rm $(BIN_DIR)/*
+	$(VERBOSE) rm bin/*
 
 clean-objects : 
-	$(VERBOSE) rm $(OBJ_DIR)/*.o
+	$(VERBOSE) rm bin/*.o
 
 
 

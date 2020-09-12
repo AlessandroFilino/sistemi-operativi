@@ -1,14 +1,13 @@
 #include <stdio.h>
-#include <stdlib.h>
 #include <unistd.h>
 #include <fcntl.h>
 #include <string.h>
 #include <signal.h>
-#include <sys/stat.h>
 #include <sys/wait.h>
-#include <errno.h>
 #include "../include/pfcDisconnectedSwitch.h"
 #include "../include/utility.h"
+#include "../include/utility-textfile.h"
+#include "../include/utility-ipc.h"
 #include "../include/config.h"
 #include "../include/messages.h"
 

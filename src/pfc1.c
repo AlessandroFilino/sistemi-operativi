@@ -3,6 +3,8 @@
 #include <fcntl.h>
 #include <signal.h>
 #include "../include/utility.h"
+#include "../include/utility-textfile.h"
+#include "../include/utility-ipc.h"
 #include "../include/pfc.h"
 #include "../include/config.h"
 #include "../include/messages.h"

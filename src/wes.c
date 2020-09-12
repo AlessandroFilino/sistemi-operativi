@@ -3,9 +3,11 @@
 #include <unistd.h>
 #include <fcntl.h>
 #include <string.h>
+#include "../include/utility.h"
+#include "../include/utility-textfile.h"
+#include "../include/utility-ipc.h"
 #include "../include/messages.h"
 #include "../include/wes.h"
-#include "../include/utility.h"
 #include "../include/config.h"
 
 int main(int argc, const char *argv[]) {

@@ -1,15 +1,12 @@
-#include <stdlib.h>
 #include <stdio.h>
 #include <unistd.h>
-#include <signal.h>
 #include <string.h>
 #include <fcntl.h>
-#include <sys/stat.h>
-#include <sys/types.h>
-#include <sys/socket.h>
 #include <sys/un.h>
 #include <sys/wait.h>
 #include "../include/utility.h"
+#include "../include/utility-textfile.h"
+#include "../include/utility-ipc.h"
 #include "../include/transducers.h"
 #include "../include/config.h"
 #include "../include/messages.h"

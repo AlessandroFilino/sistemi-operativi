@@ -6,7 +6,7 @@
 #include <signal.h>
 #include "../include/config.h"
 #include "../include/pfc.h"
-#include "../include/utility.h"
+#include "../include/utility-math.h"
 
 void setSignalStatus(int signalReceived, enum boolean *PFC_sigUsr, enum boolean *PFC_sigRestart) {
     switch(signalReceived) {
@@ -128,7 +128,7 @@ enum boolean checkCorrectPosition(FILE *fp_g18, FILE *lastRead) {
 }
 
 double changeSpeed(double speed) {
-    return roundAndShiftLeft(speed, 2);
+    return (double) (((int) round(speed)) << 2);
 }
 
 ssize_t readCorrectLine(char *buffer, size_t bufferLength, FILE *fp) {

@@ -5,9 +5,10 @@
 #include <signal.h>
 #include <time.h>
 #include <string.h>
-#include <sys/wait.h>
 #include "../include/generatoreFallimenti.h"
 #include "../include/utility.h"
+#include "../include/utility-textfile.h"
+#include "../include/utility-ipc.h"
 #include "../include/config.h"
 #include "../include/messages.h"
 
@@ -70,7 +71,7 @@ int main(int argc, const char *argv[]) {
             char message[] = concat(GENERATORE_FALLIMENTI_SIGCONT, "\n");
 
             //SIGCONT = riprende l'esecuzione di un programma dopo la sospensione
-		kill(pfcProcessPid[pfc], SIGCONT);
+		    kill(pfcProcessPid[pfc], SIGCONT);
             fprintf(failures, message, pfc+1);	
         }
 
@@ -82,10 +83,10 @@ int main(int argc, const char *argv[]) {
             fprintf(failures, message, pfc+1);
         }
 
-	  if(fallimenti.value != 0) {
-	  	fprintf(failures, "\n");
-	  	fflush(failures);
-	  }
+        if(fallimenti.value != 0) {
+	  	    fprintf(failures, "\n");
+	  	    fflush(failures);
+	    }
 
         numberOfCharsRead = readLine(fd_pipe, buffer_newPid, MESSAGES_SEPARATOR);
         if(numberOfCharsRead > 0) {
@@ -97,7 +98,7 @@ int main(int argc, const char *argv[]) {
                 int pfcId;
                 int newFd;
 
-			printf("%s\n", buffer_newPid);
+			    printf("%s\n", buffer_newPid);
                 readNewFd(buffer_newPid, &pfcId, &newFd);
                 pfcProcessPid[pfcId] = newFd;		
 
@@ -124,7 +125,6 @@ u_4 calcoloProb() {
     if(value == 0) {
         prob.value |= 1u;
     }
-    //printf("%d, ", value);
 
     random = rand();
     inverse = (int) inverse(PROB_SIGINT);
@@ -132,7 +132,6 @@ u_4 calcoloProb() {
     if(value == 0) {
         prob.value |= 2u;
     }
-    //printf("%d, ", value);
 
     random = rand();
     inverse = (int) inverse(PROB_SIGCONT);
@@ -140,7 +139,6 @@ u_4 calcoloProb() {
     if(value == 0) {
         prob.value |= 4u;
     }
-    //printf("%d, ", value);
 
     random = rand();
     inverse = (int) inverse(PROB_SIGUSR1);
@@ -148,7 +146,6 @@ u_4 calcoloProb() {
     if(value == 0) {
         prob.value |= 8u;
     }
-    //printf("%d, %d\n", value, prob.value);
 
     return prob;
 }

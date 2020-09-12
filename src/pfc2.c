@@ -1,11 +1,11 @@
 #include <stdio.h>
-#include <stdlib.h>
 #include <unistd.h>
-#include <fcntl.h>
 #include <sys/socket.h>
 #include <sys/un.h>
 #include <signal.h>
 #include "../include/utility.h"
+#include "../include/utility-textfile.h"
+#include "../include/utility-ipc.h"
 #include "../include/pfc.h"
 #include "../include/config.h"
 #include "../include/messages.h"

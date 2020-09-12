@@ -1,10 +1,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
-#include <fcntl.h>
 #include <string.h>
 #include <sys/wait.h>
 #include "../include/utility.h"
+#include "../include/utility-textfile.h"
 #include "../include/main.h"
 #include "../include/config.h"
 #include "../include/messages.h"
