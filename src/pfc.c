@@ -32,7 +32,7 @@ void addLastRead(long current_position, FILE *lastRead) {
 
 	fseek(lastRead, 0, SEEK_SET);
    	numberOfCharsRead = fread(bufferPosition, sizeof(char), MAX_G18_FILE_LENGTH_DIGITS, lastRead);
-    	lastReadPosition = strtol(bufferPosition, NULL, 10);
+   	lastReadPosition = strtol(bufferPosition, NULL, 10);
 
     //TODO gestire errore read == -1 (o in generale se read < 0)
     if(numberOfCharsRead == 0 || current_position > lastReadPosition) {
@@ -75,11 +75,11 @@ int setPreviousGeographicCoordinates(FILE *fp_g18, double *previousLatitude, dou
 
 
     if(ftell(fp_g18) < 50) {
-	position = SEEK_SET;
-	offset = 0;
+	    position = SEEK_SET;
+	    offset = 0;
     } else {
-	position = SEEK_CUR;
-	offset = -50;
+	    position = SEEK_CUR;
+	    offset = -50;
     }
 
 	if(fseek(fp_g18, offset, position) < 0) {
@@ -88,14 +88,12 @@ int setPreviousGeographicCoordinates(FILE *fp_g18, double *previousLatitude, dou
 	}
 
 	read = readCorrectLine(buffer, bufferLength, fp_g18);
-	//printf("///// %s ", buffer);
 
 	if(read < 0) {
 		fprintf(stderr, "setPreviousGeographicCoordinates: errore nella seconda fseek\n");
 	} else {
-	    	getGeographicCoordinates(buffer, previousLatitude, previousLongitude);
-	}
-	    
+        getGeographicCoordinates(buffer, previousLatitude, previousLongitude);
+    }
     
     free(buffer);
 
@@ -247,27 +245,20 @@ int exe(int fd_pfcToTransducers, FILE *fp_g18, FILE *lastRead, double *previousL
             return -1;
         }
 
-        if (*sigRestart) {
-		//usleep(1000 * 1000);
 
-		if(!checkCorrectPosition(fp_g18, lastRead)) {
-            	changePointerPosition(fp_g18, lastRead);
-            	setPreviousGeographicCoordinates(fp_g18, previousLatitude, previousLongitude);
-		}
+        if (*sigRestart) {
+            changePointerPosition(fp_g18, lastRead);
+            setPreviousGeographicCoordinates(fp_g18, previousLatitude, previousLongitude);
 
             *sigRestart = FALSE;
-	} else {
-            /*
-             * TODO: sizeof(char) potrebbe essere eliminato in quanto
-             *       la write scrive su un file leggendo da una stringa
-             */
-
-            int t = write(fd_pfcToTransducers, message, sizeof(char) * (messageLength + 1));
+        } else {
+            write(fd_pfcToTransducers, message, sizeof(char) * (messageLength + 1));
 
             *previousLatitude = latitude;
             *previousLongitude = longitude;
             addLastRead(ftell(fp_g18), lastRead);
         }
+
 
         free(message);
     }

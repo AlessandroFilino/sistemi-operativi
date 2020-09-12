@@ -1,6 +1,10 @@
 #ifndef config_h
 #define config_h
 
+/* PROCESS */
+#define PID_MAX_LENGTH      10
+#define PFC_ID_MAX_DIGITS   5
+
 /* G18 */
 #define TEMPO                       1 /*1 secondo*/
 #define NMEA_FORMAT                 "$GPGLL"

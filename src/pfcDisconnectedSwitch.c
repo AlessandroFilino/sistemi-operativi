@@ -91,6 +91,8 @@ int main(int argc, const char *argv[]) {
                 int messageLength = string_length(APPLICATION_ENDED_MESSAGE) + 1;
                 write(generatoreFallimentiPipe, message, sizeof(char) * messageLength);
 
+                fprintf(switchLog, "%s", APPLICATION_ENDED_MESSAGE);
+                fflush(switchLog);
                 /*
                  * Non abbiamo usato signal(SIGCHLD, SIG_IGN); per ignorare la morte
                  * dei processi figli per prevenire zombie perchè ciò crea figli orfani.
@@ -130,7 +132,7 @@ int main(int argc, const char *argv[]) {
                 kill(pfcProcessPid[2], SIGCONT);
 
                 fprintf(switchLog, "%s", message);
-		    fflush(switchLog);
+		        fflush(switchLog);
 
             } else if (strcmp(error, WES_MESSAGE_SUCCESS) != 0) {
                  /*
@@ -143,7 +145,7 @@ int main(int argc, const char *argv[]) {
 			char sign;
 			pfcNumber = 0;
 			getErrorInfo(error, &sign, &pfcNumber);
-                  pid_pfc = pfcProcessPid[pfcNumber - 1];
+			pid_pfc = pfcProcessPid[pfcNumber - 1];
 
 			char status = 0;	
 			char path[25] = {0};
@@ -196,7 +198,7 @@ int main(int argc, const char *argv[]) {
 			} 
             }
 
-            memset(error, '\0', sizeof(char) * strlen(error));
+            memset(error, '\0', sizeof(char) * WES_MESSAGE_MAX_LENGTH);
         }
     }
 

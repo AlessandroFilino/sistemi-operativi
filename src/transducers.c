@@ -147,7 +147,7 @@ int main(int argc, const char * argv[]) {
 
             if(pid == transducers_socket_pid) {
                 strcpy(name, "transducers-socket"); 
-		} else {
+		    } else {
                 snprintf(name, sizeof(char) * 10, "%d", pid);
             }
             

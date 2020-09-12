@@ -40,8 +40,6 @@ int main(int argc, const char * argv[]) {
 
     numberOfCharsRead = setPreviousGeographicCoordinates(fp_g18, &previousLatitude, &previousLongitude);
 
-    char test[20] = {0};
-
     while(numberOfCharsRead != -1) {
         //TODO usare sleep(1)
         usleep((1 * 1000) * 1000); //1000 millisecondi = 1 secondo

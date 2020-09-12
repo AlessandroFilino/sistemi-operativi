@@ -8,7 +8,7 @@ create-dir :
 main : main.o utility.o utility-textfile.o
 	$(VERBOSE) gcc -o bin/main bin/main.o bin/utility.o bin/utility-textfile.o
 
-main.o : src/main.c include/main.h include/utility.h include/utility-textfile.h include/config.h include/messages.h
+main.o : src/main.c include/utility.h include/utility-textfile.h include/config.h include/messages.h
 	$(VERBOSE) gcc -c src/main.c -o bin/main.o
 
 

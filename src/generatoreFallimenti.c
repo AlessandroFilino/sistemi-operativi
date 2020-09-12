@@ -13,80 +13,61 @@
 #include "../include/messages.h"
 
 int main(int argc, const char *argv[]) {
+
     srand(time(NULL));
 
     int pfc;
+    int pfcId;
+    int newFd;
     int numberOfCharsRead;
-    u_4 fallimenti; fallimenti.value = 0;
+    unsigned char fallimenti = 0;
     enum boolean terminated = FALSE;
 
     createPipe(FILENAME_GENERATOREFALLIMENTI_PIPE, DEFAULT_PERMISSIONS);
     int fd_pipe = open(FILENAME_GENERATOREFALLIMENTI_PIPE, O_RDONLY | O_NONBLOCK);
 
     FILE *failures = openFile(FILENAME_FAILURES_LOG, "w");
-    char buffer_newPid[PFCDISCONNECTEDSWITCH_MESSAGE_MAX_LENGTH + 1 + 1] = {0};
-
-    const char *pfc1_pid = argv[1];
-    const char *pfc2_pid = argv[2];
-    const char *pfc3_pid = argv[3];
+    char buffer_newPid[PFCDISCONNECTEDSWITCH_MESSAGE_MAX_LENGTH] = {0};
 
     int pfcProcessPid[3] = {
-            (int) strtol(pfc1_pid, NULL, 10),
-            (int) strtol(pfc2_pid, NULL, 10),
-            (int) strtol(pfc3_pid, NULL, 10)
+            (int) strtol(argv[1], NULL, 10),
+            (int) strtol(argv[2], NULL, 10),
+            (int) strtol(argv[3], NULL, 10)
     };
 
     while(!terminated) {
-        usleep((1 * 1000) * 1000); //100 millisecondi
+        sleep(1);
 
         pfc = rand() % 3;
-        //printf("%d, ", pfc);
+        fallimenti = setProb();
 
-        fallimenti = calcoloProb();
-	
-		//printf("%d, %d, %d - %d", pfcProcessPid[0], pfcProcessPid[1], pfcProcessPid[2], fallimenti.value);
-
-	  /*if(fallimenti.value >= 8 || fallimenti.value % 2 == 1) {
-        	printf("pfc: %d - value: %d\n", pfc+1, fallimenti.value);
- 	  	fflush(stdout);
-	  }*/
-
-        if (fallimenti.value & 1u) {
-            char message[] = concat(GENERATORE_FALLIMENTI_SIGSTOP, "\n");
-
+        if (fallimenti & SIGSTOP_INDEX) {
             //SIGSTOP = sospensione da dentro un programma
             kill(pfcProcessPid[pfc], SIGSTOP);
-            fprintf(failures, message, pfc+1);
+
+            writeLog(failures, GENERATOREFALLIMENTI_SIGSTOP, pfc+1);
         }
 
-        if (fallimenti.value & 2u) {
-            char message[] = concat(GENERATORE_FALLIMENTI_SIGINT, "\n");
-
+        if (fallimenti & SIGINT_INDEX) {
             //SIGINT = quando l'utente digita ctrl-c
             kill(pfcProcessPid[pfc], SIGINT);
-            fprintf(failures, message, pfc+1);
+
+            writeLog(failures, GENERATOREFALLIMENTI_SIGINT, pfc+1);
         }
 
-        if (fallimenti.value & 4u) {
-            char message[] = concat(GENERATORE_FALLIMENTI_SIGCONT, "\n");
-
+        if (fallimenti & SIGCONT_INDEX) {
             //SIGCONT = riprende l'esecuzione di un programma dopo la sospensione
 		    kill(pfcProcessPid[pfc], SIGCONT);
-            fprintf(failures, message, pfc+1);	
+
+            writeLog(failures, GENERATOREFALLIMENTI_SIGCONT, pfc+1);
         }
 
-        if (fallimenti.value & 8u) {
-            char message[] = concat(GENERATORE_FALLIMENTI_SIGUSR1, "\n");
-
+        if (fallimenti & SIGUSR1_INDEX) {
             //SIGUSR1 = segnale definito dall'utente
             kill(pfcProcessPid[pfc], SIGUSR1);
-            fprintf(failures, message, pfc+1);
-        }
 
-        if(fallimenti.value != 0) {
-	  	    fprintf(failures, "\n");
-	  	    fflush(failures);
-	    }
+            writeLog(failures, GENERATOREFALLIMENTI_SIGUSR1, pfc+1);
+        }
 
         numberOfCharsRead = readLine(fd_pipe, buffer_newPid, MESSAGES_SEPARATOR);
         if(numberOfCharsRead > 0) {
@@ -95,9 +76,6 @@ int main(int argc, const char *argv[]) {
             if(strcmp(buffer_newPid, APPLICATION_ENDED_MESSAGE) == 0) {
                 terminated = TRUE;
             } else {
-                int pfcId;
-                int newFd;
-
 			    printf("%s\n", buffer_newPid);
                 readNewFd(buffer_newPid, &pfcId, &newFd);
                 pfcProcessPid[pfcId] = newFd;		
@@ -113,52 +91,48 @@ int main(int argc, const char *argv[]) {
     return 0;
 }
 
-u_4 calcoloProb() {
-    u_4 prob; prob.value = 0;
-    int random;
-    int value;
-    int inverse;
+void writeLog(FILE *log, char *string, int pfc) {
+    char message[GENERATOREFALLIMENTI_MESSAGE_MAX_LENGTH] = {0};
+    strcpy(message, string);
+    message[strlen(message)] = '\n';
 
-    random = rand();
-    inverse = (int) inverse(PROB_SIGSTOP);
-    value = random % inverse;
-    if(value == 0) {
-        prob.value |= 1u;
+    fprintf(log, message, pfc);
+    fflush(log);
+}
+
+enum boolean checkProb(double prob) {
+    int random = rand();
+    int inv = (int) inverse(prob);
+    int value = random % inv;
+
+    return (value == 0);
+}
+
+unsigned char setProb() {
+    unsigned char prob = 0;
+
+    if(checkProb(PROB_SIGSTOP)) {
+        prob |= SIGSTOP_INDEX;
     }
 
-    random = rand();
-    inverse = (int) inverse(PROB_SIGINT);
-    value = random % inverse;
-    if(value == 0) {
-        prob.value |= 2u;
+    if(checkProb(PROB_SIGINT)) {
+        prob |= SIGINT_INDEX;
     }
 
-    random = rand();
-    inverse = (int) inverse(PROB_SIGCONT);
-    value = random % inverse;
-    if(value == 0) {
-        prob.value |= 4u;
+    if(checkProb(PROB_SIGCONT)) {
+        prob |= SIGCONT_INDEX;
     }
 
-    random = rand();
-    inverse = (int) inverse(PROB_SIGUSR1);
-    value = random % inverse;
-    if(value == 0) {
-        prob.value |= 8u;
+    if(checkProb(PROB_SIGUSR1)) {
+        prob |= SIGUSR1_INDEX;
     }
 
     return prob;
 }
 
 void readNewFd(char *buffer_newPid, int *pfcId, int *newPid) {
-    /*
-     * TODO cambiare la lunghezza di temp_pfcId e temp_newPid
-     *      considerando che pfcId può essere 1, 2 o 3 e che
-     *      newPid magari potrebbe raggiungere massimo 5 cifre.
-     *      (Quanto può essere lungo un pid?)
-     */
-    char temp_pfcId[15] = {0};
-    char temp_newPid[15] = {0};
+    char temp_pfcId[PFC_ID_MAX_DIGITS] = {0};
+    char temp_newPid[PID_MAX_LENGTH] = {0};
 
     tokenize(buffer_newPid, PFCDISCONNECTEDSWITCH_SEPARATOR, 2, temp_pfcId, temp_newPid);
 

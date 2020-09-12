@@ -1,8 +1,6 @@
 #ifndef utility_h
 #define utility_h
 
-#define inverse(NUM) ((double) 1/NUM)
-
 /*
  * "[ $(ls __PATHDIR__ | wc -l) -gt 0 ] && rm __PATHDIR__* || :"
  * TODO: controllare se l'ultimo carattere di PATHDIR è '/' e, in caso mancasse, inserirlo?
@@ -23,6 +21,7 @@ enum boolean {FALSE, TRUE};
 int createChild(int (*execv_function)(const char*, char* const*), char *filename, char **argv);
 int numberOfDigits(int value);
 void removeLastChar(char *string);
+double inverse(double number);
 void tokenize(char *string, char *separator, int tokenNumber, ...);
 
 #endif

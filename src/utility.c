@@ -46,6 +46,10 @@ void removeLastChar(char *string) {
     *(string + (length-1)) = 0;
 }
 
+double inverse(double number) {
+    return (double) 1/number;
+}
+
 void tokenize(char *string, char *separator, int tokenNumber, ...) {
     char *argument;
     char *temp = string;
