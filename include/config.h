@@ -9,7 +9,6 @@
 #define TEMPO                           1 /*1 secondo*/
 #define NMEA_FORMAT                     "$GPGLL"
 #define NMEA_FORMAT_SEPARATOR           ","
-#define MAX_SPEED_DIGITS                10
 #define MAX_NMEA_FORMAT_LINE_LENGTH     50 /*Lunghezza massima delle righe GPGLL di G18.txt*/
 #define MAX_LINE_LENGTH                 150 /*Lunghezza massima di tutte le righe di G18.txt*/
 #define MAX_G18_FILE_LENGTH_DIGITS      10 /*Massimo numero di cifre della lunghezza in bytes del file g18.txt*/
