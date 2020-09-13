@@ -18,7 +18,6 @@
 #define DEFAULT_PERMISSIONS 0660
 
 /* PATH */
-#define PATHNAME_BIN "../bin/"
 #define PATHNAME_LOG "../log/"
 #define PATHNAME_TEMP "../temp/"
 

@@ -20,7 +20,6 @@ int main(int argc, const char *argv[]) {
     int numberOfCharsRead;
     int pid_pfc;
     int pfcProcessPid[3] = {0};
-    int generatoreFallimentiProcess = 0;
     enum boolean terminated = FALSE;
     char error[WES_MESSAGE_MAX_LENGTH] = {0};
 
@@ -48,7 +47,7 @@ int main(int argc, const char *argv[]) {
     snprintf(pfc3Process, sizeof(char) * PID_MAX_LENGTH, "%d", pfcProcessPid[2]);
 
     char *generatoreFallimenti_argv[] = {"generatoreFallimenti", pfc1Process, pfc2Process, pfc3Process, NULL};
-    generatoreFallimentiProcess = createChild(&execv, "generatoreFallimenti", generatoreFallimenti_argv);
+    createChild(&execv, "generatoreFallimenti", generatoreFallimenti_argv);
 
     /*
      * pfcArgv è un array di puntatori e memorizza gli indirizzi
@@ -66,7 +65,7 @@ int main(int argc, const char *argv[]) {
     while(!terminated) {
         sleep(1);
 
-        numberOfCharsRead = readLine(wesPipe, error, MESSAGES_SEPARATOR);
+        numberOfCharsRead = readLine(wesPipe, error, '\n');
 
         if(numberOfCharsRead > 0) {
             removeLastChar(error);
@@ -93,7 +92,7 @@ int main(int argc, const char *argv[]) {
                  * Abbiamo preferito usare la wait ripetuta 4 volte (pfc1/2/3 e generatoreFallimenti)
                  */
 
-                while(pid >= 0) {
+                for(int i=0; i<4; i++) {
                     pid = wait(&status);
 
                     /*

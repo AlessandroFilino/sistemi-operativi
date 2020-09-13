@@ -4,21 +4,10 @@
 #include <stdarg.h>
 #include "../include/utility.h"
 
-/*
- * TODO: in queste funzioni sarebbe corretto restituire ogni errore
- *       perchè si tratta di funzioni generiche slegate dalla specifica
- *       implementazione del programma. Magari per semplicità possiamo
- *       ignorare gli errori quando richiamiamo le funzioni.
- */
-
-//TODO implementare scrittura con fprintf e dprintf
-
 int createChild(int (*execv_function)(const char*, char* const*), char *filename, char **argv) {
     int pid = fork();
 
     if (pid < 0) {
-        //TODO usare perror
-
         fprintf(stderr, "Fork Failed\n");
         return -1;
     } else if(pid == 0) {

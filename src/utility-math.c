@@ -6,15 +6,13 @@ double degreeToRadian(double degree) {
 }
 
 double getDistance(double latitude, double longitude, double previousLatitude, double previousLongitude){
-    //TODO rinominare "dLat" in "differenceLatitude" e "dLon" in "differenceLongitude"?
-
-    double dLat = degreeToRadian(latitude - previousLatitude);
-    double dLon = degreeToRadian(longitude - previousLongitude);
+    double differenceLatitude = degreeToRadian(latitude - previousLatitude);
+    double differenceLongitude = degreeToRadian(longitude - previousLongitude);
     latitude = degreeToRadian(latitude);
     previousLatitude = degreeToRadian(previousLatitude);
 
-    double a = sin(dLat/2) * sin(dLat/2) +
-               sin(dLon/2) * sin(dLon/2) * cos(previousLatitude) * cos(latitude);
+    double a = sin(differenceLatitude / 2) * sin(differenceLatitude / 2) +
+               sin(differenceLongitude / 2) * sin(differenceLongitude / 2) * cos(previousLatitude) * cos(latitude);
     double c = 2 * atan2(sqrt(a), sqrt(1-a));
 
     return RAGGIO_TERRA_METRI * c;

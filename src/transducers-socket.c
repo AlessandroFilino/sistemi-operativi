@@ -1,4 +1,3 @@
-#include <stdlib.h>
 #include <stdio.h>
 #include <unistd.h>
 #include <string.h>
@@ -12,7 +11,6 @@
 #include "../include/messages.h"
 
 int main(int argc, const char *argv[]) {
-	//pfc1
     int serverFd, clientFd;
     unsigned int clientLen;
     struct sockaddr* clientSockAddrPtr;
@@ -22,17 +20,15 @@ int main(int argc, const char *argv[]) {
     setFileFlags(clientFd, O_NONBLOCK);
 
     FILE *speedPFC1Log = openFile(FILENAME_SPEEDPFC1_LOG, "w");
-    char velocita_pfc1[15] = {0};
+    char velocita_pfc1[PFC_MESSAGE_MAX_LENGTH] = {0};
     enum boolean PFC1terminated = FALSE;
 
     int numberOfCharsRead = 0;
 
     while(!PFC1terminated) {
-	usleep((1 * 1000) * 5); //5 millisecondi
+	    usleep((1 * 1000) * 5); //5 millisecondi
 
-	 //pfc1
-        numberOfCharsRead = readLine(clientFd, velocita_pfc1, MESSAGES_SEPARATOR);
-        //printf("pfc2 - transducer: %s (%d)\n", velocita_pfc1, tempo);
+        numberOfCharsRead = readLine(clientFd, velocita_pfc1, '\n');
 
         if(!PFC1terminated && numberOfCharsRead > 0) {
             fprintf(speedPFC1Log, "%s", velocita_pfc1);
@@ -40,20 +36,17 @@ int main(int argc, const char *argv[]) {
 
             removeLastChar(velocita_pfc1);
 
-            //printf("pfc2 - transducer: (%d) %s\n", tempo, velocita_pfc1);
-            //fflush(stdout);
-
             if(strcmp(velocita_pfc1, APPLICATION_ENDED_MESSAGE) == 0) {
                 PFC1terminated = TRUE;
             }
 
-            memset(velocita_pfc1, '\0', sizeof(char) * 15);
+            memset(velocita_pfc1, '\0', sizeof(char) * PFC_MESSAGE_MAX_LENGTH);
         } else if(socketIsNotConnected(clientFd) && !PFC1terminated) {
-		close(clientFd);
+		    close(clientFd);
 	
-		clientFd = accept(serverFd, clientSockAddrPtr, &clientLen);
+		    clientFd = accept(serverFd, clientSockAddrPtr, &clientLen);
     		setFileFlags(clientFd, O_NONBLOCK);
-	  }
+        }
     }
 
     close(clientFd);

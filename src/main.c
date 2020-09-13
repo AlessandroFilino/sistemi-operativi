@@ -29,40 +29,32 @@ int main(int argc, const char* argv[]) {
     createEmptyFile(FILENAME_LAST_READ, "w");
 
     char *transducers_argv[] = {"transducers", NULL};
-    int transducers_pid = createChild(&execv, "transducers", transducers_argv);
+    createChild(&execv, "transducers", transducers_argv);
 
     char *pfcDisconnectedSwitch_argv[] = {"pfcDisconnectedSwitch", filename_g18, NULL};
-    int pfcDisconnectedSwitch_pid = createChild(&execv, "pfcDisconnectedSwitch", pfcDisconnectedSwitch_argv);
+    createChild(&execv, "pfcDisconnectedSwitch", pfcDisconnectedSwitch_argv);
 	
-	//La sleep permette a PFC1, PFC2 e PFC3 di scrivere un valore 
-	//nei rispettivi file di log consentendo una lettura valida
-	//al processo WES 
-	
+	/*
+	 * La sleep permette a PFC1, PFC2 e PFC3 di scrivere un valore
+	 * nei rispettivi file di log consentendo una lettura valida
+	 * al processo WES
+	 */
      
     //sleep(1);
 	usleep(1000 * 800);
 
     char *wes_argv[] = {"wes", NULL};
-    int wes_pid = createChild(&execv, "wes", wes_argv);
+    createChild(&execv, "wes", wes_argv);
 
-    while(pid >= 0) {
+    for(int i=0; i<3; i++) {
         pid = wait(&status);
 
-        //Child process exited normally, through `return` or `exit`
-        if (WIFEXITED(status)) {
-            char name[50] = {0};
-
-            if(pid == pfcDisconnectedSwitch_pid) {
-                strcpy(name, "pfcDisconnectedSwitch");
-            } else if(pid == transducers_pid) {
-                strcpy(name, "transducers");
-            } else if(pid == wes_pid) {
-                strcpy(name, "wes");
-            } else {
-                snprintf(name, sizeof(char) * 10, "%d", pid);
-            }
-            
-            //printf("main: Child process '%s' exited with %d status\n", name, WEXITSTATUS(status));
+        /*
+         * Se WIFEXITED(status) != 0, allora un processo figlio
+         * è terminato con un errore
+         */
+        if (!WIFEXITED(status)) {
+            printf("main: Child process %d exited with %d status\n", pid, WEXITSTATUS(status));
         }
     }
 

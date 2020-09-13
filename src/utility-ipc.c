@@ -38,9 +38,9 @@ int connectPipe(char *pipename, int mode) {
 
 int createServerAF_UNIXSocket(char *socketname, int maximumConnections, struct sockaddr **clientSockAddrPtr, int unsigned *clientLen) {
     int serverFd, serverLen;
-    struct sockaddr_un serverUNIXAddress; //Server address
-    struct sockaddr* serverSockAddrPtr; //Ptr to server address
-    struct sockaddr_un clientUNIXAddress; //Client address
+    struct sockaddr_un serverUNIXAddress;
+    struct sockaddr* serverSockAddrPtr;
+    struct sockaddr_un clientUNIXAddress;
 
     serverSockAddrPtr = (struct sockaddr*) &serverUNIXAddress;
     serverLen = sizeof (serverUNIXAddress);
@@ -48,33 +48,13 @@ int createServerAF_UNIXSocket(char *socketname, int maximumConnections, struct s
     *clientLen = sizeof (clientUNIXAddress);
 
     serverFd = socket(AF_UNIX, SOCK_STREAM, DEFAULT_PROTOCOL);
-    serverUNIXAddress.sun_family = AF_UNIX; // Set domain type
-    strcpy(serverUNIXAddress.sun_path, socketname); // Set name
-    unlink(socketname); // Remove file if it already exists
-    bind(serverFd, serverSockAddrPtr, serverLen);// Create file
-    listen(serverFd, maximumConnections); // Maximum pending connection length
+    serverUNIXAddress.sun_family = AF_UNIX;
+    strcpy(serverUNIXAddress.sun_path, socketname);
+    unlink(socketname);
+    bind(serverFd, serverSockAddrPtr, serverLen);
+    listen(serverFd, maximumConnections);
 
     return serverFd;
-    /*
-    int serverFd, clientFd, serverLen, result;
-    int unsigned clientLen;
-    struct sockaddr_un serverUNIXAddress; //Server address
-    struct sockaddr* serverSockAddrPtr; //Ptr to server address
-    struct sockaddr_un clientUNIXAddress; //Client address
-    struct sockaddr* clientSockAddrPtr;//Ptr to client address
-
-    serverSockAddrPtr = (struct sockaddr*) &serverUNIXAddress;
-    serverLen = sizeof (serverUNIXAddress);
-    clientSockAddrPtr = (struct sockaddr*) &clientUNIXAddress;
-    clientLen = sizeof (clientUNIXAddress);
-
-    serverFd = socket (AF_UNIX, SOCK_STREAM, DEFAULT_PROTOCOL);
-    serverUNIXAddress.sun_family = AF_UNIX; // Set domain type
-    strcpy (serverUNIXAddress.sun_path, FILENAME_PFC1_SOCKET); // Set name
-    unlink (FILENAME_PFC1_SOCKET); // Remove file if it already exists
-    bind (serverFd, serverSockAddrPtr, serverLen);// Create file
-    listen (serverFd, 1); // Maximum pending connection length
-     */
 }
 
 int createClientAF_UNIXSocket(char *socketname, struct sockaddr_un* serverUNIXAddress, struct sockaddr **serverSockAddrPtr, int unsigned *serverLen) {
@@ -88,19 +68,6 @@ int createClientAF_UNIXSocket(char *socketname, struct sockaddr_un* serverUNIXAd
     strcpy((*serverUNIXAddress).sun_path, socketname); //server name
 
     return clientFd;
-
-    /*
-     int clientFd, serverLen;
-    struct sockaddr_un serverUNIXAddress; //Server address
-    struct sockaddr* serverSockAddrPtr; //Ptr to server address
-
-    serverSockAddrPtr = (struct sockaddr*) &serverUNIXAddress;
-    serverLen = sizeof (serverUNIXAddress);
-
-    clientFd = socket (AF_UNIX, SOCK_STREAM, DEFAULT_PROTOCOL);
-    serverUNIXAddress.sun_family = AF_UNIX; //server domain type
-    strcpy (serverUNIXAddress.sun_path, FILENAME_PFC1_SOCKET); //server name
-     */
 }
 
 void connectSocket(int clientFd, const struct sockaddr* serverSockAddrPtr, socklen_t serverLen) {

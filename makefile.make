@@ -51,7 +51,7 @@ pfc.o : src/pfc.c include/pfc.h include/utility.h include/utility-math.h include
 transducers : transducers.o utility.o utility-textfile.o utility-ipc.o
 	$(VERBOSE) gcc -o bin/transducers bin/transducers.o bin/utility.o bin/utility-textfile.o bin/utility-ipc.o
 
-transducers.o : src/transducers.c include/transducers.h include/utility.h include/utility-textfile.h include/utility-ipc.h include/config.h include/messages.h
+transducers.o : src/transducers.c include/utility.h include/utility-textfile.h include/utility-ipc.h include/config.h include/messages.h
 	$(VERBOSE) gcc -c src/transducers.c -o bin/transducers.o
 
 

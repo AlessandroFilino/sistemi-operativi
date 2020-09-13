@@ -69,14 +69,13 @@ int main(int argc, const char *argv[]) {
             writeLog(failures, GENERATOREFALLIMENTI_SIGUSR1, pfc+1);
         }
 
-        numberOfCharsRead = readLine(fd_pipe, buffer_newPid, MESSAGES_SEPARATOR);
+        numberOfCharsRead = readLine(fd_pipe, buffer_newPid, '\n');
         if(numberOfCharsRead > 0) {
             removeLastChar(buffer_newPid);
 
             if(strcmp(buffer_newPid, APPLICATION_ENDED_MESSAGE) == 0) {
                 terminated = TRUE;
             } else {
-			    printf("%s\n", buffer_newPid);
                 readNewFd(buffer_newPid, &pfcId, &newFd);
                 pfcProcessPid[pfcId] = newFd;		
 

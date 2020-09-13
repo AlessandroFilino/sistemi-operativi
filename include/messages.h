@@ -1,13 +1,7 @@
 #ifndef errors_h
 #define errors_h
 
-/*
- * TODO cambiare '\n' in "\n" e modificare readLine
- *      (readLine dovrebbe accettare una stringa come delimiter
- *      anzichè un carattere perchè così, se in un futuro volessimo
- *      cambiare il MESSAGES_SEPARATOR in "\n\r" potremo farlo)
- */
-#define MESSAGES_SEPARATOR     '\n'
+#define PFC_MESSAGE_MAX_LENGTH  30
 
 #define WES_MESSAGE_MAX_LENGTH 			        30
 #define WES_MESSAGE_SIGN_MAX_LENGTH             5
