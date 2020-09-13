@@ -26,7 +26,7 @@ int connectPipe(char *pipename, int mode) {
     int fd;
 
     do {
-        usleep((1 * 1000) * 400); //400 millisecondi
+        usleep((1 * 1000) * 500); //500 millisecondi
         printf("trying to connect...\n");
 
         fd = open(pipename, mode);
@@ -74,7 +74,7 @@ void connectSocket(int clientFd, const struct sockaddr* serverSockAddrPtr, sockl
     int result;
 
     do {
-        usleep((1 * 1000) * 400); //400 millisecondi
+        usleep((1 * 1000) * 500); //500 millisecondi
         printf("trying to connect...\n");
 
         result = connect(clientFd, serverSockAddrPtr, serverLen);

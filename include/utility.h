@@ -3,7 +3,6 @@
 
 /*
  * "[ $(ls __PATHDIR__ | wc -l) -gt 0 ] && rm __PATHDIR__* || :"
- * TODO: controllare se l'ultimo carattere di PATHDIR è '/' e, in caso mancasse, inserirlo?
  */
 #define remove_files_from(PATHDIR) "[ $(ls " PATHDIR " | wc -l) -gt 0 ] && rm " PATHDIR "* || :"
 #define concat(DEST, S)            DEST S

@@ -39,8 +39,7 @@ int main(int argc, const char* argv[]) {
 	 * nei rispettivi file di log consentendo una lettura valida
 	 * al processo WES
 	 */
-     
-    //sleep(1);
+
 	usleep(1000 * 800);
 
     char *wes_argv[] = {"wes", NULL};

@@ -15,7 +15,7 @@ int main(int argc, const char * argv[]) {
 
     //transducers-socket e pfc1
     char *transducers_socket_argv[] = {"transducers-socket", NULL};
-    int transducers_socket_pid = createChild(&execv, "transducers-socket", transducers_socket_argv);
+    createChild(&execv, "transducers-socket", transducers_socket_argv);
 
     //pfc2
     createPipe(FILENAME_PFC2_PIPE, DEFAULT_PERMISSIONS);

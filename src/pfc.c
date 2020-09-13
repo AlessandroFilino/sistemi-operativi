@@ -22,7 +22,6 @@ void setSignalStatus(int signalReceived, enum boolean *PFC_sigUsr, enum boolean 
     }
 }
 
-//TODO convertire questa funzione in una generica scrittura sul file e inserirla in utility.c
 void addLastRead(long current_position, FILE *lastRead) {
 	unsigned long numberOfCharsRead = 0;
 	long lastReadPosition = 0;

@@ -41,30 +41,6 @@ int main(int argc, const char *argv[]) {
         ReadLog(bufferPFC2, speedPFC2Log);
         ReadLog(bufferPFC3, speedPFC3Log);
 
-        /*memset(bufferPFC1, '\0', sizeof(char) * PFC_MESSAGE_MAX_LENGTH);
-        numberOfCharsRead = readLine(speedPFC1Log, bufferPFC1, MESSAGES_SEPARATOR);
-        if(numberOfCharsRead > 0) {
-            removeLastChar(bufferPFC1);
-        } else {
-            snprintf(bufferPFC1, sizeof(char) * 3, "-1");
-        }
-
-        memset(bufferPFC2, '\0', sizeof(char) * PFC_MESSAGE_MAX_LENGTH);
-        numberOfCharsRead = readLine(speedPFC2Log, bufferPFC2, MESSAGES_SEPARATOR);
-        if(numberOfCharsRead > 0) {
-            removeLastChar(bufferPFC2);
-        } else {
-            snprintf(bufferPFC2, sizeof(char) * 3, "-1");
-        }
-
-        memset(bufferPFC3, '\0', sizeof(char) * PFC_MESSAGE_MAX_LENGTH);
-        numberOfCharsRead = readLine(speedPFC3Log, bufferPFC3, MESSAGES_SEPARATOR);
-        if(numberOfCharsRead > 0) {
-            removeLastChar(bufferPFC3);
-        } else {
-            snprintf(bufferPFC3, sizeof(char) * 3, "-1");
-        }*/
-
         if((strcmp(bufferPFC1, APPLICATION_ENDED_MESSAGE) == 0) ||
            (strcmp(bufferPFC2, APPLICATION_ENDED_MESSAGE) == 0) ||
            (strcmp(bufferPFC2, APPLICATION_ENDED_MESSAGE)) == 0) {
@@ -121,8 +97,7 @@ int main(int argc, const char *argv[]) {
 
                    	 write(wesPipe, message, sizeof(char) * messageLength);
 
-                   	 //TODO : printf("%s", message);
-                   	 printf("(%.2f, %.2f, %.2f) - %s", speedPFC1, speedPFC2, speedPFC3, message);
+                   	 printf("%s", message);
                 } else {
                     if(speedPFC1 == -1) {
                         strcpy(message, concat(WES_MESSAGE_EMERGENCY, "\n"));
@@ -140,8 +115,7 @@ int main(int argc, const char *argv[]) {
 
 				    write(wesPipe, message, sizeof(char) * messageLength);
 
-                    //TODO : printf("%s", message);
-			  	    printf("(%.2f, %.2f, %.2f) - %s", speedPFC1, speedPFC2, speedPFC3, message);
+                    printf("%s", message);
                 }	
             } else {
                 if (speedPFC1 == speedPFC3) {
@@ -161,8 +135,7 @@ int main(int argc, const char *argv[]) {
 
                     write(wesPipe, message, sizeof(char) * messageLength);
 
-                    //TODO : printf("%s", message);
-                    printf("(%.2f, %.2f, %.2f) - %s", speedPFC1, speedPFC2, speedPFC3, message);
+                    printf("%s", message);
                 } else if (speedPFC2 == speedPFC3) {
                     if(speedPFC3 == -1) {
                         strcpy(message, concat(WES_MESSAGE_EMERGENCY, "\n"));
@@ -180,8 +153,7 @@ int main(int argc, const char *argv[]) {
 
                     write(wesPipe, message, sizeof(char) * messageLength);
 
-                    //TODO : printf("%s", message);
-                    printf("(%.2f, %.2f, %.2f) - %s", speedPFC1, speedPFC2, speedPFC3, message);
+                    printf("%s", message);
                 } else {
                     strcpy(message, concat(WES_MESSAGE_EMERGENCY, "\n"));
                     messageLength = string_length(WES_MESSAGE_EMERGENCY) + 1;
@@ -191,8 +163,7 @@ int main(int argc, const char *argv[]) {
 
                     write(wesPipe, message, sizeof(char) * messageLength);
 
-                    //TODO : printf("%s", message);
-                    printf("(%.2f, %.2f, %.2f) - %s", speedPFC1, speedPFC2, speedPFC3, message);
+                    printf("%s", message);
                 }
             }
         }
