@@ -136,8 +136,9 @@ void getGeographicCoordinates(char* line, double* latitude, double* longitude) {
     char longitudeLocation[5] = {0};
     char temp_latitude[GEOGRAPHIC_COORDINATES_LENGTH + 1] = {0};
     char temp_longitude[GEOGRAPHIC_COORDINATES_LENGTH + 1] = {0};
+    char temp_nmea[string_length(NMEA_FORMAT) + 1] = {0};
 
-    tokenize(line, NMEA_FORMAT_SEPARATOR, 4, &temp_latitude, &latitudeLocation, &temp_longitude, &longitudeLocation);
+    tokenize(line, NMEA_FORMAT_SEPARATOR, 5, &temp_nmea, &temp_latitude, &latitudeLocation, &temp_longitude, &longitudeLocation);
 
     /*
      * I valori di Latitudine e longitudine vengono divisi per 100
@@ -147,16 +148,14 @@ void getGeographicCoordinates(char* line, double* latitude, double* longitude) {
      * devono essere negativi per calcolare correttamente la distanza
      */
 
+    *latitude = strtod(temp_latitude, NULL)/100;
     if(latitudeLocation[0] == 'S' || latitudeLocation[0] == 'W') {
         *latitude *= -1;
-    } else {
-        *latitude = strtod(temp_latitude, NULL)/100;
     }
 
+    *longitude = strtod(temp_longitude, NULL)/100;
     if(longitudeLocation[0] == 'S' || longitudeLocation[0] == 'W') {
         *longitude *= -1;
-    } else {
-        *longitude = strtod(temp_longitude, NULL)/100;
     }
 
     /*
@@ -229,8 +228,6 @@ int exe(int fd_pfcToTransducers, FILE *fp_g18, FILE *lastRead, double *previousL
 
         free(message);
     }
-
-    free(line);
 
     return read;
 }

@@ -19,8 +19,10 @@ int main(int argc, const char * argv[]) {
     signal(SIGUSR1, &signalHandler);
     signal(SIGCONT, &signalHandler);
 
-    const char *filename_g18 = argv[1];
-    FILE *fp_g18 = openFile(filename_g18, "r");
+    //const char *filename_g18 = argv[1];
+    //FILE *fp_g18 = openFile(filename_g18, "r");
+
+    FILE *fp_g18 = openFile("../doc/G18-test.txt", "r");
 
     FILE *lastRead = openFile(FILENAME_LAST_READ, "r+");
     changePointerPosition(fp_g18, lastRead);
