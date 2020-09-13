@@ -10,8 +10,8 @@
 #include "../include/config.h"
 #include "../include/messages.h"
 
-enum boolean PFC2_sigusr;
-enum boolean PFC2_sigstop;
+enum boolean PFC1_sigusr;
+enum boolean PFC1_sigstop;
 void signalHandler(int signal);
 
 int main(int argc, const char * argv[]) {
@@ -32,14 +32,14 @@ int main(int argc, const char * argv[]) {
     unsigned int serverLen;
     struct sockaddr_un serverUNIXAddress; //Server address
     struct sockaddr* serverSockAddrPtr; //Ptr to server address
-    clientFd = createClientAF_UNIXSocket(FILENAME_PFC2_SOCKET, &serverUNIXAddress, &serverSockAddrPtr, &serverLen);
+    clientFd = createClientAF_UNIXSocket(FILENAME_PFC1_SOCKET, &serverUNIXAddress, &serverSockAddrPtr, &serverLen);
     connectSocket(clientFd, serverSockAddrPtr, serverLen);
 
     numberOfCharsRead = setPreviousGeographicCoordinates(fp_g18, &previousLatitude, &previousLongitude);
 
     while(numberOfCharsRead != -1) {
-        //TODO usare sleep(1)
-        usleep((1 * 1000) * 1000); //1000 millisecondi = 1 secondo
+        sleep(1);
+        //usleep((1 * 1000) * 1000); //1000 millisecondi = 1 secondo
 
 	  /*fseek(lastRead, 0, SEEK_SET);
 	  fread(test, sizeof(char), 7, lastRead);
@@ -47,7 +47,7 @@ int main(int argc, const char * argv[]) {
 	  printf("pfc2: %s\n", test);
 	  fflush(stdout);*/
 
-        numberOfCharsRead = exe(clientFd, fp_g18, lastRead, &previousLatitude, &previousLongitude, &PFC2_sigusr, &PFC2_sigstop);
+        numberOfCharsRead = exe(clientFd, fp_g18, lastRead, &previousLatitude, &previousLongitude, &PFC1_sigusr, &PFC1_sigstop);
     }
 
     char message[] = concat(APPLICATION_ENDED_MESSAGE, "\n");
@@ -64,6 +64,6 @@ int main(int argc, const char * argv[]) {
 }
 
 void signalHandler(int signal) {
-    setSignalStatus(signal, &PFC2_sigusr, &PFC2_sigstop);
+    setSignalStatus(signal, &PFC1_sigusr, &PFC1_sigstop);
 }
 

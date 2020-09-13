@@ -31,8 +31,8 @@ int main(int argc, const char * argv[]) {
     numberOfCharsRead = setPreviousGeographicCoordinates(fp_g18, &previousLatitude, &previousLongitude);
 	
     while(numberOfCharsRead != -1) {
-        //TODO usare sleep(1)
-        usleep((1 * 1000) * 1000); //1000 millisecondi = 1 secondo
+        sleep(1);
+        //usleep((1 * 1000) * 1000); //1000 millisecondi = 1 secondo
 
         numberOfCharsRead = exe(fd_fpTransducers, fp_g18, lastRead, &previousLatitude, &previousLongitude, &PFC3_sigusr, &PFC3_sigstop);
         fflush(fpTransducers);

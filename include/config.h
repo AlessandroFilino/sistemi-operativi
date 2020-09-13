@@ -2,8 +2,8 @@
 #define config_h
 
 /* PROCESS */
-#define PID_MAX_LENGTH      10
-#define PFC_ID_MAX_DIGITS   5
+#define PID_MAX_LENGTH      10 /*Numero massimo di cifre di cui possono esser composti i pid dei PFC*/
+#define PFC_ID_MAX_DIGITS   5 /*Numero massimo di cifre di cui sono composti gli ID dei PFC (sono compresi tra 1 e 3)*/
 
 /* G18 */
 #define TEMPO                       1 /*1 secondo*/
@@ -22,8 +22,8 @@
 #define PATHNAME_TEMP "../temp/"
 
 #define FILENAME_WES_PIPE                   PATHNAME_TEMP "wesPipe"
-#define FILENAME_PFC1_PIPE                  PATHNAME_TEMP "pfc1Pipe"
-#define FILENAME_PFC2_SOCKET                PATHNAME_TEMP "transducers_server"
+#define FILENAME_PFC1_SOCKET                PATHNAME_TEMP "transducers_server"
+#define FILENAME_PFC2_PIPE                  PATHNAME_TEMP "pfc2Pipe"
 #define FILENAME_GENERATOREFALLIMENTI_PIPE  PATHNAME_TEMP "generatoreFallimentiPipe"
 
 #define FILENAME_LAST_READ   PATHNAME_TEMP "last_read.txt"

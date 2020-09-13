@@ -70,8 +70,8 @@ int createServerAF_UNIXSocket(char *socketname, int maximumConnections, struct s
 
     serverFd = socket (AF_UNIX, SOCK_STREAM, DEFAULT_PROTOCOL);
     serverUNIXAddress.sun_family = AF_UNIX; // Set domain type
-    strcpy (serverUNIXAddress.sun_path, FILENAME_PFC2_SOCKET); // Set name
-    unlink (FILENAME_PFC2_SOCKET); // Remove file if it already exists
+    strcpy (serverUNIXAddress.sun_path, FILENAME_PFC1_SOCKET); // Set name
+    unlink (FILENAME_PFC1_SOCKET); // Remove file if it already exists
     bind (serverFd, serverSockAddrPtr, serverLen);// Create file
     listen (serverFd, 1); // Maximum pending connection length
      */
@@ -99,7 +99,7 @@ int createClientAF_UNIXSocket(char *socketname, struct sockaddr_un* serverUNIXAd
 
     clientFd = socket (AF_UNIX, SOCK_STREAM, DEFAULT_PROTOCOL);
     serverUNIXAddress.sun_family = AF_UNIX; //server domain type
-    strcpy (serverUNIXAddress.sun_path, FILENAME_PFC2_SOCKET); //server name
+    strcpy (serverUNIXAddress.sun_path, FILENAME_PFC1_SOCKET); //server name
      */
 }
 

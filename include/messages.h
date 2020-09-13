@@ -10,6 +10,7 @@
 #define MESSAGES_SEPARATOR     '\n'
 
 #define WES_MESSAGE_MAX_LENGTH 			        30
+#define WES_MESSAGE_SIGN_MAX_LENGTH             5
 #define WES_MESSAGE_SUCCESS    			        "OK"
 #define WES_MESSAGE_PFC1_ERROR 			        "ERROR-PFC1"
 #define WES_MESSAGE_PFC2_ERROR 			        "ERROR-PFC2"

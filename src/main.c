@@ -15,15 +15,15 @@ int main(int argc, const char* argv[]) {
     int pid = 0;
 
     unsigned int pathnameLength = strlen(argv[1]) + 1;
-    char *filename_G18 = malloc(sizeof(char) * pathnameLength);
-    strcpy(filename_G18, argv[1]);
+    char *filename_g18 = malloc(sizeof(char) * pathnameLength);
+    strcpy(filename_g18, argv[1]);
 
     if(system(remove_files_from(PATHNAME_TEMP)) || system(remove_files_from(PATHNAME_LOG)) != 0) {
         fprintf(stderr, "%s\n", MAIN_PATH_ERROR_MESSAGE);
         exit(EXIT_FAILURE);
     }
 
-    if(access(filename_G18, F_OK) == -1) {
+    if(access(filename_g18, F_OK) == -1) {
         fprintf(stderr, "%s\n", MAIN_INPUT_FNF_MESSAGE);
         exit(EXIT_FAILURE);
     }
@@ -33,7 +33,7 @@ int main(int argc, const char* argv[]) {
     char *transducers_argv[] = {"transducers", NULL};
     int transducers_pid = createChild(&execv, "transducers", transducers_argv);
 
-    char *pfcDisconnectedSwitch_argv[] = {"pfcDisconnectedSwitch", filename_G18, NULL};
+    char *pfcDisconnectedSwitch_argv[] = {"pfcDisconnectedSwitch", filename_g18, NULL};
     int pfcDisconnectedSwitch_pid = createChild(&execv, "pfcDisconnectedSwitch", pfcDisconnectedSwitch_argv);
 	
 	//La sleep permette a PFC1, PFC2 e PFC3 di scrivere un valore 

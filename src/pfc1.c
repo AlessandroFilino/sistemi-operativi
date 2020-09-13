@@ -9,8 +9,8 @@
 #include "../include/config.h"
 #include "../include/messages.h"
 
-enum boolean PFC1_sigUsr;
-enum boolean PFC1_sigRestart;
+enum boolean PFC2_sigUsr;
+enum boolean PFC2_sigRestart;
 void signalHandler(int signal);
 
 int main(int argc, const char * argv[]) {
@@ -36,13 +36,13 @@ int main(int argc, const char * argv[]) {
     FILE *lastRead = openFile(FILENAME_LAST_READ, "r+");
     changePointerPosition(fp_g18, lastRead);
 
-    int transducersPipe = connectPipe(FILENAME_PFC1_PIPE, O_WRONLY);
+    int transducersPipe = connectPipe(FILENAME_PFC2_PIPE, O_WRONLY);
 
     numberOfCharsRead = setPreviousGeographicCoordinates(fp_g18, &previousLatitude, &previousLongitude);
 
     while(numberOfCharsRead != -1) {
-        //TODO usare sleep(1)
-        usleep((1 * 1000) * 1000); //1000 millisecondi = 1 secondo
+        sleep(1);
+        //usleep((1 * 1000) * 1000); //1000 millisecondi = 1 secondo
 
 	  /*fseek(lastRead, 0, SEEK_SET);
 	  fread(test, sizeof(char), 7, lastRead);
@@ -50,7 +50,7 @@ int main(int argc, const char * argv[]) {
 	  printf("pfc1: %s\n", test);
 	  fflush(stdout);*/
 
-        numberOfCharsRead = exe(transducersPipe, fp_g18, lastRead, &previousLatitude, &previousLongitude, &PFC1_sigUsr, &PFC1_sigRestart);
+        numberOfCharsRead = exe(transducersPipe, fp_g18, lastRead, &previousLatitude, &previousLongitude, &PFC2_sigUsr, &PFC2_sigRestart);
     }
 
     char message[] = concat(APPLICATION_ENDED_MESSAGE, "\n");
@@ -67,7 +67,7 @@ int main(int argc, const char * argv[]) {
 }
 
 void signalHandler(int signal) {
-    setSignalStatus(signal, &PFC1_sigUsr, &PFC1_sigRestart);
+    setSignalStatus(signal, &PFC2_sigUsr, &PFC2_sigRestart);
 }
 
 
