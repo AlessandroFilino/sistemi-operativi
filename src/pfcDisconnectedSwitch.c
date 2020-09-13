@@ -122,7 +122,7 @@ int main(int argc, const char *argv[]) {
                             snprintf(name, sizeof(char) * 10, "%d", pid);
                         }
                         
-                        printf("PfcDiscSwitch: Child process '%s' exited with %d status\n", name, WEXITSTATUS(status));
+                        //printf("PfcDiscSwitch: Child process '%s' exited with %d status\n", name, WEXITSTATUS(status));
                     }
                 }
             } else if(strcmp(error, WES_MESSAGE_EMERGENCY) == 0) {
@@ -197,7 +197,7 @@ int main(int argc, const char *argv[]) {
                     fflush(switchLog);
 
                     //TODO: rimuovere la printf
-                    printf("error = %s, status = %c\n", error, status);
+                    //printf("error = %s, status = %c\n", error, status);
 			    }
             }
 
@@ -229,13 +229,12 @@ int main(int argc, const char *argv[]) {
 void getErrorInfo(char *error, char *sign, int *pfcNumber) {
     char temp_pfc[PFC_ID_MAX_DIGITS + 3 + 1] = {0};
     char temp_sign[WES_MESSAGE_SIGN_MAX_LENGTH + 1] = {0};
-    char temp[15] = {0};
+    char temp_error[15] = {0};
 
-    tokenize(error, "-", 3, temp, temp_pfc, temp_sign);
+    tokenize(error, "-", 3, temp_error, temp_pfc, temp_sign);
     *sign = temp_sign[0];
 
     unsigned long size = strlen(temp_pfc);
-
     char *endPointer = &temp_pfc[size-1];	
 
     while(*endPointer >= '0' && *endPointer <= '9') {

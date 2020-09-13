@@ -32,20 +32,15 @@ int main(int argc, const char * argv[]) {
 	
     while(numberOfCharsRead != -1) {
         sleep(1);
-        //usleep((1 * 1000) * 1000); //1000 millisecondi = 1 secondo
 
         numberOfCharsRead = exe(fd_fpTransducers, fp_g18, lastRead, &previousLatitude, &previousLongitude, &PFC3_sigusr, &PFC3_sigstop);
         fflush(fpTransducers);
-
-	  //printf("%ld\n", numberOfCharsRead);
-	  //fflush(stdout);
     }
 
     char message[] = concat(APPLICATION_ENDED_MESSAGE, "\n");
     int messageLength = string_length(APPLICATION_ENDED_MESSAGE) + 1;
 
     write(fd_fpTransducers, message, sizeof(char) * messageLength);
-    //printf("%s\n", message);
 
     fclose(fp_g18);
     fclose(lastRead);

@@ -8,8 +8,6 @@
 #include "../include/config.h"
 #include "../include/messages.h"
 
-//TODO spostare la creazione delle pipe nel main
-
 int main(int argc, const char* argv[]) {
     int status;
     int pid = 0;
@@ -64,7 +62,7 @@ int main(int argc, const char* argv[]) {
                 snprintf(name, sizeof(char) * 10, "%d", pid);
             }
             
-            printf("main: Child process '%s' exited with %d status\n", name, WEXITSTATUS(status));
+            //printf("main: Child process '%s' exited with %d status\n", name, WEXITSTATUS(status));
         }
     }
 

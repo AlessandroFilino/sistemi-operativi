@@ -29,9 +29,6 @@ int main(int argc, const char *argv[]) {
     int numberOfCharsRead = 0;
     enum boolean terminated = FALSE;
 
-    //char lastRead[20] = {0};
-    //FILE *last_read = openFile(FILENAME_LAST_READ, "r");
-
     while(!terminated) {
         sleep(1);
         //usleep((1 * 1000) * 1000); //100 millisecondi
@@ -199,8 +196,7 @@ int main(int argc, const char *argv[]) {
 
     write(wesPipe, message, sizeof(char) * messageLength);
 
-    //TODO : printf("%s", message);
-    printf("(/, /, /) - %s", message);
+    printf("%s", message);
 
     close(speedPFC1Log);
     close(speedPFC2Log);

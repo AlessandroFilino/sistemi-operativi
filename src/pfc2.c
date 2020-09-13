@@ -30,8 +30,8 @@ int main(int argc, const char * argv[]) {
 
     int clientFd;
     unsigned int serverLen;
-    struct sockaddr_un serverUNIXAddress; //Server address
-    struct sockaddr* serverSockAddrPtr; //Ptr to server address
+    struct sockaddr_un serverUNIXAddress;
+    struct sockaddr* serverSockAddrPtr;
     clientFd = createClientAF_UNIXSocket(FILENAME_PFC1_SOCKET, &serverUNIXAddress, &serverSockAddrPtr, &serverLen);
     connectSocket(clientFd, serverSockAddrPtr, serverLen);
 
@@ -39,14 +39,6 @@ int main(int argc, const char * argv[]) {
 
     while(numberOfCharsRead != -1) {
         sleep(1);
-        //usleep((1 * 1000) * 1000); //1000 millisecondi = 1 secondo
-
-	  /*fseek(lastRead, 0, SEEK_SET);
-	  fread(test, sizeof(char), 7, lastRead);
-	  fseek(lastRead, 0, SEEK_SET);
-	  printf("pfc2: %s\n", test);
-	  fflush(stdout);*/
-
         numberOfCharsRead = exe(clientFd, fp_g18, lastRead, &previousLatitude, &previousLongitude, &PFC1_sigusr, &PFC1_sigstop);
     }
 
@@ -54,7 +46,6 @@ int main(int argc, const char * argv[]) {
     int messageLength = string_length(APPLICATION_ENDED_MESSAGE) + 1;
 
     write(clientFd, message, sizeof(char) * messageLength);
-    //sprintf("%s\n", message);
 
     fclose(fp_g18);
     fclose(lastRead);

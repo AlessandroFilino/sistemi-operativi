@@ -114,7 +114,7 @@ int main(int argc, const char * argv[]) {
                 snprintf(name, sizeof(char) * 10, "%d", pid);
             }
             
-            printf("transducers: Child process '%s' exited with %d status\n", name, WEXITSTATUS(status));
+            //printf("transducers: Child process '%s' exited with %d status\n", name, WEXITSTATUS(status));
         }
 
     //pfc2
