@@ -85,31 +85,6 @@ int setPreviousGeographicCoordinates(FILE *fp_g18, double *previousLatitude, dou
     return read;
 }
 
-/*enum boolean checkCorrectPosition(FILE *fp_g18, FILE *lastRead) {
-    long position = 0;
-    unsigned long numberOfCharsRead = 0;
-    enum boolean result = FALSE;
-
-    //buffer_position è un buffer che contiene la posizione letta da lastRead sottoforma di stringa
-    char bufferPosition[MAX_G18_FILE_LENGTH_DIGITS] = {0};
-	
-	if(fseek(lastRead, 0, SEEK_SET) < 0) {
-		fprintf(stderr, "changePointerPosition: errore nella prima fseek\n");
-      } else {
-	    numberOfCharsRead = fread(bufferPosition, sizeof(char), MAX_G18_FILE_LENGTH_DIGITS, lastRead);
-
-	    if(numberOfCharsRead > 0) {
-		  position = strtol(bufferPosition, NULL, 10);
-
-		  if(position == ftell(fp_g18)) {
-			result = TRUE;
-		  }
-	    }
-	}
-
-	return result;
-}*/
-
 double changeSpeed(double speed) {
     return (double) (((int) round(speed)) << 2);
 }
@@ -157,20 +132,6 @@ void getGeographicCoordinates(char* line, double* latitude, double* longitude) {
     if(longitudeLocation[0] == 'S' || longitudeLocation[0] == 'W') {
         *longitude *= -1;
     }
-
-    /*
-        *latitude = strtod(strtok(NULL, NMEA_FORMAT_SEPARATOR), NULL)/100;
-        strcpy(latitudeLocation, strtok(NULL, NMEA_FORMAT_SEPARATOR));
-        if(latitudeLocation[0] == 'S' || latitudeLocation[0] == 'W') {
-            *latitude *= -1;
-        }
-
-        *longitude = strtod(strtok(NULL, NMEA_FORMAT_SEPARATOR), NULL)/100;
-        strcpy(longitudeLocation, strtok(NULL, NMEA_FORMAT_SEPARATOR));
-        if(longitudeLocation[0] == 'S' || longitudeLocation[0] == 'W') {
-            *longitude *= -1;
-        }
-    */
 }
 
 int exe(int fd_pfcToTransducers, FILE *fp_g18, FILE *lastRead, double *previousLatitude, double *previousLongitude, enum boolean *sigUsr, enum boolean *sigRestart) {
@@ -211,7 +172,7 @@ int exe(int fd_pfcToTransducers, FILE *fp_g18, FILE *lastRead, double *previousL
          * (ovvero il carattere di fine stringa)
          */
         char *message = malloc(sizeof(char) * (messageLength + 1 + 1));
-        snprintf(message, sizeof(char) * (messageLength + 1), "%.2f\n", speed);
+        snprintf(message, sizeof(char) * (messageLength + 1 + 1), "%.2f\n", speed);
 
         if (*sigRestart) {
             changePointerPosition(fp_g18, lastRead);

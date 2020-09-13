@@ -7,7 +7,6 @@ void setSignalStatus(int signalReceived, enum boolean *PFC_sigUsr, enum boolean 
 void addLastRead(long current_position, FILE *lastRead);
 void changePointerPosition(FILE *fp_g18, FILE *lastRead);
 int setPreviousGeographicCoordinates(FILE *fp_g18, double *previousLatitude, double *previousLongitude);
-enum boolean checkCorrectPosition(FILE *fp_g18, FILE *lastRead);
  
 double changeSpeed(double speed);
 ssize_t readCorrectLine(char *buffer, size_t bufferLength, FILE *fp);
