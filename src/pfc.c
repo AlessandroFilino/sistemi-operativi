@@ -69,7 +69,7 @@ int setPreviousGeographicCoordinates(FILE *fp_g18, double *previousLatitude, dou
 	    offset = 0;
     } else {
 	    position = SEEK_CUR;
-	    offset = -50;
+	    offset = -MAX_NMEA_FORMAT_LINE_LENGTH;
     }
 
     fseek(fp_g18, offset, position);

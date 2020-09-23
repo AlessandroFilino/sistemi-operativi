@@ -9,13 +9,7 @@ cmake-build-debug
 #ignorare i file autogenerati da macOS
 .DS_Store
 
-#ignorare i file delle cartelle temp/ e log/
+#ignorare i file delle cartelle log, temp e bin
 log/
 temp/
 bin/
-doc/
-
-#ignorare il file test.c perchè serve solo a fare test veloci
-src/test.c
-src/test2.c
-test-config.txt

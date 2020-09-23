@@ -1,4 +1,4 @@
-VERBOSE=
+VERBOSE=@
 
 all: create-dir main pfcDisconnectedSwitch generatoreFallimenti pfc1 pfc2 pfc3 transducers transducers-socket wes clean-objects
 
